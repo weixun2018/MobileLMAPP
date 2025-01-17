@@ -13,9 +13,9 @@ record everytime finetune performance
 
 for example:
 
-|data|GPU|VRAM|time|accuracy|
+|data|GPU|VRAM|time|loss|
 |:---:|:---:|:---:|:---:|:---:|
-|5000|T4|15GB|30min|70%|
+|5000|T4|15GB|30min|1.5|
 
 
 ## Memory
