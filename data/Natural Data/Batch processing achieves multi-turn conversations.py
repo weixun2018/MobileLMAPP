@@ -9,7 +9,7 @@ import re
 def read_excel_and_generate_payload(excel_path):
     # Read CSV file with strict parameters to handle multi-line content
     df = pd.read_csv(
-        excel_path, 
+        excel_path,
         encoding='utf-8',
         quoting=1,  # Use QUOTE_ALL mode
         engine='python',
