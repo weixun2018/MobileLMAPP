@@ -42,8 +42,8 @@ peft_model = PeftModel.from_pretrained(
 # Save reference to the original model
 original_model = base_model
 
+# Format dialogue input
 def format_dialogue(user_input):
-    """Format dialogue input"""
     return f"Human: {user_input}\n\nAssistant:"
 
 def chat(text,
@@ -80,8 +80,8 @@ def chat(text,
     except:
         return response.strip()
 
+# Compare responses from the original model and the fine-tuned model
 def compare_responses(queries):
-    """Compare responses from the original model and the fine-tuned model"""
     results = []
 
     for i, query in enumerate(queries, 1):

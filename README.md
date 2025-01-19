@@ -11,11 +11,10 @@ use what kind of finetune skill
 
 record everytime finetune performance
 
-for example:
-
 |data|GPU|VRAM|time|loss|
 |:---:|:---:|:---:|:---:|:---:|
-|5000|T4|15GB|30min|1.5|
+|4700|T4|15GB|78mins|9.05|
+|4700|L4|24GB|33mins|8.65|
 
 
 ## Memory
