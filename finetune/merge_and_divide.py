@@ -39,7 +39,7 @@ def merge_json_files(data_dir):
         # Shuffle the data randomly
         random.shuffle(merged_data)
         
-        # Calculate the split point
+        # **Calculate the split point**
         total_samples = len(merged_data)
         train_size = int(total_samples * 0.9)
         
