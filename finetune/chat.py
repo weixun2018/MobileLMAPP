@@ -91,8 +91,8 @@ def main():
     # Test single query
     query = "上大学后就感觉一切变得很不熟悉，连自己都变得不像自己了,我应该怎么办？"
     print(f"问题: {query}")
-    print(chat(query, models=base_model, tokenizer=tokenizer))
-    print(chat(query, models=peft_model, tokenizer=tokenizer))
+    print(chat(query, models={"原始模型": base_model}, tokenizer=tokenizer))
+    print(chat(query, models={"微调模型": peft_model}, tokenizer=tokenizer))
 
     # print(chat(query, models=models))
     print("-----------------------\n")
