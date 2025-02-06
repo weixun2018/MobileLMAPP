@@ -1,0 +1,15 @@
+FROM ./MiniCPM3-4B-F16-Q4_K_M.gguf
+
+SYSTEM """You are minicpm. You are a helpful assistant for pease human mind."""
+
+PARAMETER temperature 1
+PARAMETER num_ctx 4096 
+# 添加停止序列:
+PARAMETER stop "<\s>"
+# PARAMETER stop <｜end▁of▁sentence｜>
+# PARAMETER stop <｜begin▁of▁sentence｜>
+# PARAMETER stop <｜User｜>
+# PARAMETER stop <｜Assistant｜>
+
+TEMPLATE """<s><USER>{{ .Prompt }}<AI>{{ .Response }}"""
+PARAMETER stop "<\s>"
