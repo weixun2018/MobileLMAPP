@@ -25,6 +25,8 @@
 
 ## GPU
 
++ ==GPU 编译版本需要有显卡==
+
 + 安装 llama.cpp
 
   ```bash
@@ -57,28 +59,53 @@
   cmake --build build_gpu --config Release
   ```
 
+## API
 
+本地执行 `./llama-server -m /path/to/model` 后再默认端口会运行一个模型
 
+使用 URL http://127.0.0.1:8080/completions 可访问
 
-# 量化
+> 注意：端侧只能使用llama.cpp的cpu编译版本推理模型
 
-**示例代码**
++ 示例代码
 
-+ 量化
-
-  ```bash
-  ./llama-quantize ./models/Minicpm/ggml-model-f16.gguf ./models/Minicpm/ggml-model-Q4_K_M.gguf Q4_K_M
+  ```py
+  import requests
+  import json
+  data = {
+              "prompt": prompt,	# 用户提示词
+              "stream": True		# 是否采用流式访问
+          }
+  requests.post("http://127.0.0.1:8080/completions", json=data, stream=True)
   ```
 
-+ 模型格式转换
+  > 流式访问即实时接收模型预测的 token，而不必等待模型生成出完整回答。
+  >
+  > 因此流式访问通常会携带多个json格式的响应
 
-  llama.cpp 项目路径下就有一个 `py` 脚本，用于模型转换
+  **更多常用请求体参数**
 
-  ```bash
-  python convert-hf-to-gguf.py models/Minicpm/
-  ```
+  以下是将上述内容转换为 Markdown 表格的简化版本，仅保留参数名称、是否必填、默认值和简要描述：
 
-  
+  | 参数名称          | 是否必填 | 默认值 | 描述                                                         |
+  | ----------------- | -------- | ------ | ------------------------------------------------------------ |
+  | temperature       | 否       | 0.8    | 调整生成文本的随机性                                         |
+  | dynatemp_range    | 否       | 0.0    | 动态温度范围，范围为 `[temperature - dynatemp_range; temperature + dynatemp_range]`，默认禁用 |
+  | dynatemp_exponent | 否       | 1.0    | 动态温度指数                                                 |
+  | top_k             | 否       | 40     | 限制下一个 token 选择为最可能的 K 个 token                   |
+  | top_p             | 否       | 0.95   | 限制下一个 token 选择为累积概率高于阈值 P 的子集             |
+  | min_p             | 否       | 0.05   | 相对于最可能 token 的概率，token 的最小概率                  |
+  | n_predict         | 否       | -1     | 设置生成文本时的最大 token 数量，-1 表示无限制               |
+  | n_indent          | 否       | 0      | 生成文本的最小缩进字符数，适用于代码补全任务                 |
+  | n_keep            | 否       | 0      | 当上下文大小超出时，保留的 prompt token 数量（不包括 BOS token），-1 表示保留所有 token |
+  | stream            | 否       | false  | 是否实时接收每个预测的 token，而不是等待完成（使用不同的响应格式） |
+  | stop              | 否       | []     | 停止字符串的 JSON 数组，这些字符串不会包含在生成结果中       |
+  | typical_p         | 否       | 1.0    | 启用局部典型采样，参数为 p，1.0 表示禁用                     |
+  | repeat_penalty    | 否       | 1.1    | 控制生成文本中 token 序列的重复                              |
+  | repeat_last_n     | 否       | 64     | 考虑重复惩罚的最后 n 个 token，0 表示禁用，-1 表示上下文大小 |
+  | presence_penalty  | 否       | 0.0    | 重复 alpha 存在惩罚，0.0 表示禁用                            |
+  | frequency_penalty | 否       | 0.0    | 重复 alpha 频率惩罚，0.0 表示禁用                            |
+
 # ollama
 
 ## 基础命令
@@ -123,6 +150,8 @@ ollama 默认使用 11434 端口
 + windows 环境下，可以在环境变量中配置 `OLLAMA_PORT` 修改默认运行端口
 + docker 环境下配置 
 
+### todo
+
 ## Modefile
 
 + 示例代码
@@ -159,6 +188,11 @@ ollama 默认使用 11434 端口
 
   定义一个在模型运行时的参数
 
+  > stop 建议一定要定义，参考预训练的模型官方技术文档
+  >
+  > + minicpm 使用的是 `<s></s>` 作为标记
+  > + deepseek 使用 ` <｜end▁of▁sentence｜>`
+
   | 参数名称         | 描述                                                         | 值类型 | 示例用法               |
   | ---------------- | ------------------------------------------------------------ | ------ | ---------------------- |
   | `mirostat`       | 启用 Mirostat 采样以控制困惑度。默认值为 0，0 = 禁用，1 = Mirostat，2 = Mirostat 2.0 | int    | `mirostat 0`           |
@@ -179,3 +213,72 @@ ollama 默认使用 11434 端口
 + TEMPLATE
 
   采用 Go 语音的模板语法，具体示例看官方
+  
+  模板用于划分 User 和 AI 对话，举例
+  
+  ```
+  ```
+
+## API
+
++ url
+
+  使用 http://localhost:11434/api/generate 访问本地运行的模型，端口可以自定义
+
++ post 请求
+
+  ```py
+  import requests
+  import json
+  
+  
+  data = {
+              "model": MODEL_NAME, #使用本地ollama列表中的模型名称
+              "prompt": prompt,    #prompt即用户提示词
+              "stream": True		 #stream用于定义是否采用流式访问
+          }
+  requests.post("http://localhost:11434/api/generate", json=data, stream=True)
+  ```
+
+  **更多参数**
+
+  以下是将上述内容转换为 Markdown 表格的简化版本：
+
+  | 参数名称   | 是否必填     | 描述                                       |
+  | ---------- | ------------ | ------------------------------------------ |
+  | model      | 是           | 模型名称                                   |
+  | prompt     | 否           | 生成响应的提示文本                         |
+  | suffix     | 否           | 模型响应后的附加文本                       |
+  | images     | 否           | 基64编码的图像列表（仅限多模态模型）       |
+  | format     | 否           | 响应格式（如 json 或 JSON schema）         |
+  | options    | 否           | 模型参数（如温度等）                       |
+  | system     | 否           | 系统消息（覆盖 Modelfile 中的设置）        |
+  | template   | 否           | 提示模板（覆盖 Modelfile 中的设置）        |
+  | stream     | 否           | 是否以流式响应（`false` 为单次响应）       |
+  | raw        | 否           | 是否禁用提示格式化（适用于完整模板化提示） |
+  | keep_alive | 否           | 模型在内存中的保持时间（默认 5 分钟）      |
+  | context    | 否（已废弃） | 用于保持简短对话记忆的上下文参数           |
+
+  注意：`context` 参数已废弃，不推荐使用。
+
+
+
+# 量化
+
+**示例代码**
+
++ 量化
+
+  ```bash
+  ./llama-quantize ./models/Minicpm/ggml-model-f16.gguf ./models/Minicpm/ggml-model-Q4_K_M.gguf Q4_K_M
+  ```
+
++ 模型格式转换
+
+  llama.cpp 项目路径下就有一个 `py` 脚本，用于模型转换
+
+  ```bash
+  python convert-hf-to-gguf.py models/Minicpm/
+  ```
+
+  

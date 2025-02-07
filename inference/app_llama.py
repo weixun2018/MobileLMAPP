@@ -43,7 +43,8 @@ class ChatApp:
         prompt = f"{self.history}<｜User｜>{user_input}<｜Assistant｜>"
         data = {
             "prompt": prompt,
-            "stream": True
+            "stream": True,
+            "n_predict": 256,
         }
 
         try:
@@ -56,7 +57,7 @@ class ChatApp:
                     decoded_line = line.decode('utf-8')
                     # tmp = decoded_line.get("data", "false")
                     # print(tmp)
-                    print(decoded_line)
+                    # print(decoded_line)
                     try:
                         response_data = json.loads(decoded_line[6:])
                         if "content" in response_data:
