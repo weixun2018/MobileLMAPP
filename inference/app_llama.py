@@ -33,36 +33,38 @@ class ChatApp:
             return
 
         # 显示用户输入并清空输入框
-        self._update_display(f"<用户>{user_input}\n", "user")
+        self._update_display(f"<｜User｜>{user_input}\n", "user")
         self.prompt_entry.delete(0, tk.END)
 
         # 在后台线程中处理请求, 保证页面不会卡死，不能操作
         threading.Thread(target=self._process_request, args=(user_input,), daemon=True).start()
 
     def _process_request(self, user_input):
-        prompt = f"{self.history}<用户>{user_input}<AI>"
+        prompt = f"{self.history}<｜User｜>{user_input}<｜Assistant｜>"
         data = {
-            "model": myConfig.MODEL,
             "prompt": prompt,
             "stream": True
         }
 
         try:
-            response = requests.post("http://localhost:11434/api/generate", json=data, stream=True)
+            response = requests.post("http://127.0.0.1:8080/completions", json=data, stream=True)
             response.raise_for_status()
 
             ai_response = ""
             for line in response.iter_lines():
                 if line:
                     decoded_line = line.decode('utf-8')
+                    # tmp = decoded_line.get("data", "false")
+                    # print(tmp)
+                    print(decoded_line)
                     try:
-                        response_data = json.loads(decoded_line)
-                        if "response" in response_data:
+                        response_data = json.loads(decoded_line[6:])
+                        if "content" in response_data:
                             # 实时更新每个响应片段
-                            self._update_display(response_data["response"], "ai")
-                            ai_response += response_data["response"]
+                            self._update_display(response_data["content"], "ai")
+                            ai_response += response_data["content"]
 
-                        if response_data.get("done", False):
+                        if response_data.get("stop", False):
                             self.history += ai_response
                             # 响应完成后换行
                             self._update_display("\n", "ai")
