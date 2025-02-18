@@ -1,0 +1,16 @@
+F:\45_wzyDiplomaProject\project\server\src\main\java\com\example\project\config\SecurityConfig.java
+F:\45_wzyDiplomaProject\project\server\src\main\java\com\example\project\util\JwtUtil.java
+F:\45_wzyDiplomaProject\project\server\src\main\java\com\example\project\service\UserService.java
+F:\45_wzyDiplomaProject\project\server\src\main\java\com\example\project\dto\AuthResponse.java
+F:\45_wzyDiplomaProject\project\server\src\main\java\com\example\project\repository\UserRepository.java
+F:\45_wzyDiplomaProject\project\server\src\main\java\com\example\project\dto\MessageRequest.java
+F:\45_wzyDiplomaProject\project\server\src\main\java\com\example\project\model\User.java
+F:\45_wzyDiplomaProject\project\server\src\main\java\com\example\project\controller\ChatController.java
+F:\45_wzyDiplomaProject\project\server\src\main\java\com\example\project\model\ChatMessage.java
+F:\45_wzyDiplomaProject\project\server\src\main\java\com\example\project\service\ChatService.java
+F:\45_wzyDiplomaProject\project\server\src\main\java\com\example\project\dto\MessageResponse.java
+F:\45_wzyDiplomaProject\project\server\src\main\java\com\example\project\ProjectApplication.java
+F:\45_wzyDiplomaProject\project\server\src\main\java\com\example\project\repository\ChatMessageRepository.java
+F:\45_wzyDiplomaProject\project\server\src\main\java\com\example\project\dto\RegisterRequest.java
+F:\45_wzyDiplomaProject\project\server\src\main\java\com\example\project\controller\AuthController.java
+F:\45_wzyDiplomaProject\project\server\src\main\java\com\example\project\dto\LoginRequest.java

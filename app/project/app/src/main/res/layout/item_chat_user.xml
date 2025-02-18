@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 用户聊天消息项布局
+     使用 LinearLayout 实现垂直布局
+     主要功能：
+     - 展示用户发送的消息内容
+     - 显示消息发送时间
+     - 提供统一的视觉样式
+     
+     布局特点：
+     - 消息气泡样式
+     - 右对齐布局
+     - 合理的内容间距
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:gravity="end">
+
+    <!-- 消息内容文本
+         - 使用主题色气泡背景
+         - 白色文字提高对比度
+         - 限制最大宽度避免过长
+         - 合适的内边距确保可读性
+    -->
+    <TextView
+        android:id="@+id/message_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_chat_user"
+        android:padding="12dp"
+        android:textColor="@android:color/white"
+        android:maxWidth="280dp"/>
+
+    <!-- 时间显示文本
+         - 小号字体次要显示
+         - 灰色文字降低视觉权重
+         - 与消息保持适当间距
+    -->
+    <TextView
+        android:id="@+id/time_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:textColor="@android:color/darker_gray"
+        android:layout_marginTop="4dp"/>
+
+</LinearLayout> 

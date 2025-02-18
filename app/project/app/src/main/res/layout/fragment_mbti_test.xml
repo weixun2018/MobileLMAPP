@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- MBTI 测试界面布局
+     使用 ConstraintLayout 实现灵活的布局结构
+     主要功能：
+     - 显示测试进度
+     - 展示测试题目
+     - 提供选项按钮
+     
+     布局特点：
+     - 垂直方向链式约束
+     - 清晰的视觉层次
+     - 合理的间距分配
+-->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <!-- 进度文本
+         - 显示当前题目进度
+         - 提供完成度反馈
+         - 位于界面顶部
+    -->
+    <TextView
+        android:id="@+id/progress_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <!-- 进度条
+         - 可视化测试进度
+         - 与进度文本配合使用
+         - 提供直观的进度展示
+    -->
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/progress_text"/>
+
+    <!-- 问题文本
+         - 居中显示测试题目
+         - 适当的字号确保可读性
+         - 与选项按钮保持合理间距
+    -->
+    <TextView
+        android:id="@+id/question_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:textSize="20sp"
+        android:textAlignment="center"
+        app:layout_constraintTop_toBottomOf="@id/progress_bar"/>
+
+    <!-- 选项 A 按钮
+         - 提供第一个选项
+         - 占满屏幕宽度增加可点击区域
+         - 与问题文本保持适当间距
+    -->
+    <Button
+        android:id="@+id/option_a_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:padding="16dp"
+        app:layout_constraintTop_toBottomOf="@id/question_text"/>
+
+    <!-- 选项 B 按钮
+         - 提供第二个选项
+         - 与选项 A 保持统一样式
+         - 合理的按钮间距
+    -->
+    <Button
+        android:id="@+id/option_b_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:padding="16dp"
+        app:layout_constraintTop_toBottomOf="@id/option_a_button"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout> 
