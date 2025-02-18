@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 心理咨询界面布局
+     使用 LinearLayout 实现垂直布局
+     主要功能：
+     - 心理咨询服务信息展示
+     - 最新资讯列表
+     - 支持下拉刷新
+     
+     布局特点：
+     - 顶部信息卡片
+     - 底部滚动列表
+     - 清晰的视觉层次
+-->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- 信息卡片区域
+         - 使用 CardView 提供卡片式视觉效果
+         - 包含服务介绍信息
+         - 突出显示重要内容
+    -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp">
+        
+        <!-- 卡片内容容器
+             - 垂直排列文本内容
+             - 合理的内边距
+             - 清晰的信息层次
+        -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+            
+            <!-- 服务标题
+                 - 使用主题色突出显示
+                 - 较大字号增加重要性
+                 - 粗体样式强调标题
+            -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/psychology_info_title"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/purple_500"/>
+            
+            <!-- 服务描述
+                 - 详细介绍服务内容
+                 - 与标题保持适当间距
+                 - 清晰的阅读体验
+            -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/psychology_info_description"/>
+                
+        </LinearLayout>
+        
+    </androidx.cardview.widget.CardView>
+
+    <!-- 资讯列表区域
+         - 支持下拉刷新功能
+         - 占据剩余空间
+         - 流畅的滚动体验
+    -->
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- 资讯列表
+             - 使用 RecyclerView 高效展示列表
+             - 设置内边距避免内容贴边
+             - 允许内容超出边界实现过度滚动
+        -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/news_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="8dp"
+            android:clipToPadding="false"/>
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+</LinearLayout> 
