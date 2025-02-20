@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 接收消息项布局
+     使用 ConstraintLayout 实现灵活的布局结构
+     主要功能：
+     - 展示接收到的消息内容
+     - 显示消息发送时间
+     - 提供统一的视觉样式
+     
+     布局特点：
+     - 左侧对齐布局
+     - 消息气泡样式
+     - 合理的内容间距
+-->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="8dp">
+
+    <!-- 消息内容文本
+         - 使用气泡背景突出显示
+         - 限制最大宽度避免过长
+         - 左对齐布局区分接收消息
+         - 合适的内边距确保可读性
+    -->
+    <TextView
+        android:id="@+id/message_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/bg_message_received"
+        android:maxWidth="240dp"
+        android:padding="12dp"
+        android:textColor="@android:color/black"
+        android:textSize="16sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 时间显示文本
+         - 小号字体次要显示
+         - 灰色文字降低视觉权重
+         - 与消息保持适当间距
+         - 左对齐跟随消息布局
+    -->
+    <TextView
+        android:id="@+id/message_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="4dp"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="12sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/message_text" />
+
+</androidx.constraintlayout.widget.ConstraintLayout> 

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 已有 MBTI 结果展示布局
+     使用 LinearLayout 实现垂直居中布局
+     主要功能：
+     - 展示用户已有的 MBTI 类型
+     - 提供查看详情入口
+     - 支持重新测试选项
+     
+     布局特点：
+     - 居中显示重要信息
+     - 突出显示类型结果
+     - 清晰的操作按钮
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:gravity="center">
+
+    <!-- 标题文本
+         - 大号字体提示当前状态
+         - 粗体样式增加重要性
+         - 与类型结果保持间距
+    -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/existing_mbti_title"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- MBTI 类型显示
+         - 超大号字体突出结果
+         - 使用主题色强调
+         - 粗体样式增强视觉效果
+    -->
+    <TextView
+        android:id="@+id/existing_mbti_type"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:textColor="@color/purple_500"
+        android:layout_marginBottom="32dp"/>
+
+    <!-- 查看详情按钮
+         - 提供详细信息入口
+         - 占据合适宽度
+         - 与重测按钮保持统一样式
+    -->
+    <Button
+        android:id="@+id/view_details_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/view_details"
+        android:layout_marginHorizontal="32dp"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- 重新测试按钮
+         - 提供重测入口
+         - 与详情按钮对齐
+         - 保持统一的按钮样式
+    -->
+    <Button
+        android:id="@+id/retake_test_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="32dp"
+        android:text="@string/retake_test"/>
+
+</LinearLayout>

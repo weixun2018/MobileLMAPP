@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 资讯列表项布局
+     使用 CardView 实现卡片式视觉效果
+     主要功能：
+     - 展示资讯标题
+     - 显示发布日期
+     - 提供统一的卡片样式
+     
+     布局特点：
+     - 卡片式阴影效果
+     - 圆角边框设计
+     - 合理的内容间距
+-->
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp">
+
+    <!-- 内容容器
+         - 垂直排列文本内容
+         - 适当的内边距
+         - 清晰的信息层次
+    -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- 资讯标题
+             - 较大字号突出重要性
+             - 黑色文字提高可读性
+             - 占满卡片宽度
+        -->
+        <TextView
+            android:id="@+id/news_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textColor="@android:color/black"/>
+
+        <!-- 发布日期
+             - 小号字体次要显示
+             - 灰色文字降低视觉权重
+             - 与标题保持适当间距
+        -->
+        <TextView
+            android:id="@+id/news_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="12sp"
+            android:textColor="@android:color/darker_gray"/>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView> 

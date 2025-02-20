@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 个人资料界面布局
+     使用 ScrollView 确保内容可滚动查看
+     主要功能：
+     - 用户基本信息展示
+     - 个人资料编辑
+     - 账户相关操作
+     
+     布局特点：
+     - 垂直方向线性布局
+     - 合理的内容分组
+     - 统一的表单样式
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- 头像区域
+             - 圆形图片展示
+             - 支持点击更换
+             - 突出的视觉效果
+        -->
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/profile_image"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"
+            android:src="@drawable/default_avatar"
+            app:civ_border_width="2dp"
+            app:civ_border_color="@color/purple_500"/>
+
+        <!-- 用户名显示
+             - 大号字体突出显示
+             - 居中布局增加重要性
+             - 与头像形成视觉整体
+        -->
+        <TextView
+            android:id="@+id/username_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"
+            android:textSize="24sp"
+            android:textStyle="bold"/>
+
+        <!-- 用户 ID 显示
+             - 次要信息灰色显示
+             - 与用户名保持关联
+             - 提供唯一标识信息
+        -->
+        <TextView
+            android:id="@+id/user_id_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:textColor="@android:color/darker_gray"/>
+
+        <!-- 邮箱显示
+             - 用于联系和找回密码
+             - 次要信息样式
+             - 适当的间距布局
+        -->
+        <TextView
+            android:id="@+id/email_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:textColor="@android:color/darker_gray"/>
+
+        <!-- MBTI 类型显示
+             - 可选显示的个性类型
+             - 使用主题色突出显示
+             - 默认隐藏状态
+        -->
+        <TextView
+            android:id="@+id/mbti_type_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/purple_500"
+            android:visibility="gone"/>
+
+        <!-- 年龄输入区域
+             - Material Design 输入框样式
+             - 数字类型键盘
+             - 表单验证支持
+        -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp">
+
+            <EditText
+                android:id="@+id/age_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/age_hint"
+                android:inputType="number"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- 性别选择下拉框
+             - 提供预设选项
+             - 统一的表单样式
+             - 适当的间距设置
+        -->
+        <Spinner
+            android:id="@+id/gender_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"/>
+
+        <!-- 年级选择下拉框
+             - 提供预设选项
+             - 与性别选择器样式统一
+             - 合理的间距布局
+        -->
+        <Spinner
+            android:id="@+id/grade_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"/>
+
+        <!-- 个人简介输入区域
+             - 支持多行文本输入
+             - Material Design 样式
+             - 提供足够的输入空间
+        -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp">
+
+            <EditText
+                android:id="@+id/bio_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/bio_hint"
+                android:inputType="textMultiLine"
+                android:minLines="3"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- 保存按钮
+             - 主要操作按钮
+             - 醒目的主题色样式
+             - 提交表单数据
+        -->
+        <Button
+            android:id="@+id/save_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/save_changes"/>
+
+        <!-- 修改密码按钮
+             - 次要操作按钮
+             - 与保存按钮区分样式
+             - 触发密码修改流程
+        -->
+        <Button
+            android:id="@+id/change_password_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/change_password"/>
+
+        <!-- 登出按钮
+             - 警示性操作按钮
+             - 使用红色突出风险
+             - 触发退出登录流程
+        -->
+        <Button
+            android:id="@+id/logout_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:backgroundTint="@android:color/holo_red_light"
+            android:text="@string/logout"/>
+
+    </LinearLayout>
+</ScrollView> 

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AI心理助手</string>
+    <string name="input_hint">输入消息...</string>
+    <string name="send">发送</string>
+    
+    <!-- Login and Register -->
+    <string name="username_hint">用户名</string>
+    <string name="password_hint">密码</string>
+    <string name="email_hint">邮箱</string>
+    <string name="remember_password">记住密码</string>
+    <string name="confirm_password_hint">确认密码</string>
+    <string name="login">登录</string>
+    <string name="register">注册</string>
+    <string name="register_title">创建账号</string>
+    
+    <!-- Bottom navigation menu items -->
+    <string name="menu_ai_chat">AI心理助手</string>
+    <string name="menu_mbti">MBTI测试</string>
+    <string name="menu_psychology">心理资讯</string>
+    <string name="menu_profile">个人中心</string>
+    
+    <!-- Messages -->
+    <string name="error_network">网络错误</string>
+    <string name="error_login_failed">登录失败</string>
+    <string name="error_register_failed">注册失败</string>
+    <string name="error_passwords_not_match">两次输入的密码不一致</string>
+    <string name="error_fields_empty">请填写所有字段</string>
+    <string name="load_more">加载更多历史记录</string>
+    <string name="no_more_history">没有更多历史记录</string>
+    <string name="loading">加载中...</string>
+    
+    <!-- Profile -->
+    <string name="age_hint">年龄</string>
+    <string name="bio_hint">个人简介</string>
+    <string name="save_changes">保存更改</string>
+    <string name="profile_updated">个人资料更新成功</string>
+    <string name="error_updating_profile">更新个人资料失败</string>
+    <string name="mbti_not_tested">MBTI: 尚未测试</string>
+    <string name="mbti_type_format">MBTI类型: %s</string>
+    
+    <!-- Profile - Avatar and Password -->
+    <string name="change_avatar">更换头像</string>
+    <string name="change_password">修改密码</string>
+    <string name="current_password">当前密码</string>
+    <string name="new_password">新密码</string>
+    <string name="confirm_new_password">确认新密码</string>
+    <string name="password_updated">密码更新成功</string>
+    <string name="error_updating_password">密码更新失败</string>
+    <string name="error_passwords_not_match_new">新密码两次输入不一致</string>
+    <string name="error_current_password">当前密码错误</string>
+    
+    <!-- MBTI Test -->
+    <string name="existing_mbti_title">您的MBTI测试结果</string>
+    <string name="view_details">查看详细结果</string>
+    <string name="retake_test">重新测试</string>
+    <string name="question_progress">问题 %1$d/%2$d</string>
+    <string name="error_loading_questions">加载问题失败</string>
+    <string name="error_submitting_answers">提交答案失败</string>
+    <string name="mbti_result_title">您的 MBTI 类型</string>
+    <string name="mbti_dimension_ei">外向 (E) - 内向 (I)</string>
+    <string name="mbti_dimension_sn">感知 (S) - 直觉 (N)</string>
+    <string name="mbti_dimension_tf">思考 (T) - 感觉 (F)</string>
+    <string name="mbti_dimension_jp">判断 (J) - 感知 (P)</string>
+    
+    <!-- Psychology -->
+    <string name="book_consultation">预约咨询</string>
+    <string name="my_consultations">我的咨询</string>
+    <string name="consultation_history">咨询历史</string>
+    <string name="no_consultations">暂无咨询记录</string>
+    
+    <!-- Gender options -->
+    <string-array name="gender_options">
+        <item>选择性别</item>
+        <item>男</item>
+        <item>女</item>
+        <item>其他</item>
+    </string-array>
+    
+    <!-- Grade options -->
+    <string-array name="grade_options">
+        <item>选择年级</item>
+        <item>大一</item>
+        <item>大二</item>
+        <item>大三</item>
+        <item>大四</item>
+    </string-array>
+    
+    <!-- Logout -->
+    <string name="logout">退出登录</string>
+    <string name="logout_confirm">确定退出登录吗?</string>
+    <string name="yes">是</string>
+    <string name="no">否</string>
+    
+    <!-- Psychology Info -->
+    <string name="psychology_info_title">心理新闻</string>
+    <string name="psychology_info_description">这里您可以找到最新的心理健康新闻和信息。下拉刷新以获取最新内容。</string>
+</resources>
