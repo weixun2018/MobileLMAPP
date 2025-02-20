@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- MBTI 测试结果界面布局
+     使用 ScrollView 确保内容可滚动查看
+     主要功能：
+     - 展示 MBTI 类型结果
+     - 显示详细的类型描述
+     - 展示各维度的得分情况
+     - 提供重新测试的选项
+     
+     布局特点：
+     - 垂直方向线性布局
+     - 合理的内容间距
+     - 清晰的视觉层次
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- MBTI 类型结果
+             - 大号字体突出显示
+             - 居中布局增加重要性
+             - 粗体样式强调结果
+        -->
+        <TextView
+            android:id="@+id/mbti_type_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:textSize="32sp"
+            android:textStyle="bold"/>
+
+        <!-- 类型描述文本
+             - 详细解释 MBTI 类型特征
+             - 适当的字号确保可读性
+             - 与类型结果保持合适间距
+        -->
+        <TextView
+            android:id="@+id/mbti_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:textSize="16sp"/>
+
+        <!-- 维度得分区域
+             - 包含四个维度的得分展示
+             - 使用进度条可视化得分
+             - 统一的样式和间距
+        -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="24dp">
+
+            <!-- E/I 维度得分
+                 - 外向/内向倾向评估
+                 - 文字说明配合进度条
+                 - 清晰的视觉反馈
+            -->
+            <TextView
+                android:id="@+id/ei_score_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"/>
+
+            <ProgressBar
+                android:id="@+id/ei_progress"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"/>
+
+            <!-- S/N 维度得分
+                 - 感觉/直觉倾向评估
+                 - 与其他维度保持一致的样式
+                 - 合适的上下间距
+            -->
+            <TextView
+                android:id="@+id/sn_score_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:textSize="16sp"/>
+
+            <ProgressBar
+                android:id="@+id/sn_progress"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"/>
+
+            <!-- T/F 维度得分
+                 - 思维/情感倾向评估
+                 - 进度条显示具体得分
+                 - 文字说明提供详细解释
+            -->
+            <TextView
+                android:id="@+id/tf_score_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:textSize="16sp"/>
+
+            <ProgressBar
+                android:id="@+id/tf_progress"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"/>
+
+            <!-- J/P 维度得分
+                 - 判断/知觉倾向评估
+                 - 完整展示四个维度的最后一项
+                 - 保持统一的展示风格
+            -->
+            <TextView
+                android:id="@+id/jp_score_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:textSize="16sp"/>
+
+            <ProgressBar
+                android:id="@+id/jp_progress"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"/>
+
+        </LinearLayout>
+
+        <!-- 重新测试按钮
+             - 提供重新测试的入口
+             - 位于结果展示的底部
+             - 醒目的样式引导用户操作
+        -->
+        <Button
+            android:id="@+id/retake_test_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/retake_test"/>
+
+    </LinearLayout>
+</ScrollView> 

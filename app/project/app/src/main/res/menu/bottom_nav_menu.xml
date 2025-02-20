@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_ai_chat"
+        android:icon="@drawable/ic_chat"
+        android:title="@string/menu_ai_chat" />
+    <item
+        android:id="@+id/navigation_mbti"
+        android:icon="@drawable/ic_mbti"
+        android:title="@string/menu_mbti" />
+    <item
+        android:id="@+id/navigation_psychology"
+        android:icon="@drawable/ic_psychology"
+        android:title="@string/menu_psychology" />
+    <item
+        android:id="@+id/navigation_profile"
+        android:icon="@drawable/ic_profile"
+        android:title="@string/menu_profile" />
+</menu> 

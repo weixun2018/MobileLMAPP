@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 主界面布局
+     使用 ConstraintLayout 作为根布局
+     主要功能：
+     - Fragment 容器用于动态切换内容
+     - 底部导航栏用于页面切换
+     
+     布局结构：
+     - 上方为 Fragment 容器，动态加载各个功能页面
+     - 下方为固定的底部导航栏
+-->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="MainActivity">
+
+    <!-- Fragment 容器
+         - 使用 FrameLayout 作为容器便于切换
+         - 高度自适应，占据除底部导航栏外的所有空间
+         - 用于动态加载各个功能页面的 Fragment
+    -->
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_navigation"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 底部导航栏
+         - 使用 Material Design 组件
+         - 固定在界面底部
+         - 提供主要功能页面的快速切换
+         - 使用主题色设置图标和文字颜色
+         - 通过 menu 资源文件配置导航项
+    -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="?android:attr/windowBackground"
+        app:itemIconTint="@color/bottom_nav_color"
+        app:itemTextColor="@color/bottom_nav_color"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:menu="@menu/bottom_nav_menu" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

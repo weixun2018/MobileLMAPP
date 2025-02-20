@@ -1,0 +1,16 @@
+com\example\project\repository\ChatMessageRepository.class
+com\example\project\dto\AuthResponse.class
+com\example\project\controller\AuthController.class
+com\example\project\util\JwtUtil.class
+com\example\project\repository\UserRepository.class
+com\example\project\service\UserService.class
+com\example\project\config\SecurityConfig.class
+com\example\project\dto\MessageResponse.class
+com\example\project\dto\RegisterRequest.class
+com\example\project\ProjectApplication.class
+com\example\project\controller\ChatController.class
+com\example\project\dto\LoginRequest.class
+com\example\project\dto\MessageRequest.class
+com\example\project\model\ChatMessage.class
+com\example\project\model\User.class
+com\example\project\service\ChatService.class
