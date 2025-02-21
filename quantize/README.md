@@ -4,7 +4,7 @@
 
 [MiniCPM3-4B-GPTQ](https://huggingface.co/openbmb/MiniCPM3-4B-GPTQ-Int4/tree/main)
 
-
+[MiniCPM3-4B-AWQ](https://huggingface.co/qwqcoder/MiniCPM3-4B-AWQ)
 
 # 量化模型
 
