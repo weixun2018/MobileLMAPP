@@ -263,22 +263,3 @@ ollama 默认使用 11434 端口
 
 
 
-# 量化
-
-**示例代码**
-
-+ 量化
-
-  ```bash
-  ./llama-quantize ./models/Minicpm/ggml-model-f16.gguf ./models/Minicpm/ggml-model-Q4_K_M.gguf Q4_K_M
-  ```
-
-+ 模型格式转换
-
-  llama.cpp 项目路径下就有一个 `py` 脚本，用于模型转换
-
-  ```bash
-  python convert-hf-to-gguf.py models/Minicpm/
-  ```
-
-  
