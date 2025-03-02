@@ -1,9 +1,25 @@
+"""
+This script is used for loading a model and generating responses based on user input.
+It utilizes the transformers library for model handling and the peft library for model fine-tuning.
+"""
+
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from peft import PeftModel
 import torch
 import os
 
 def load_model(model_path, device='cuda', force_auto_device_map=False):
+    """
+    Load the model from the specified path.
+
+    Parameters:
+    model_path (str): The path to the model directory.
+    device (str): The device to load the model on (default is 'cuda').
+    force_auto_device_map (bool): Whether to force the use of an automatic device map.
+
+    Returns:
+    base_model: The loaded model.
+    """
     # Set a more detailed device mapping strategy
     if force_auto_device_map:
         device_map = "auto"
@@ -34,6 +50,23 @@ def chat(text,
          top_k=50,
          num_beams=4,
          repetition_penalty=1.2):
+    """
+    Generate responses from the models based on the input text.
+
+    Parameters:
+    text (str): The input text from the user.
+    models (dict): A dictionary of models to generate responses from.
+    tokenizer: The tokenizer to process the input text.
+    max_length (int): Maximum length of the generated response.
+    temperature (float): Sampling temperature for randomness.
+    top_p (float): Cumulative probability for nucleus sampling.
+    top_k (int): Number of highest probability vocabulary tokens to keep for top-k filtering.
+    num_beams (int): Number of beams for beam search.
+    repetition_penalty (float): Penalty for repeating tokens.
+
+    Returns:
+    str: The generated responses from the models.
+    """
     
     if tokenizer is None:
         raise ValueError("Tokenizer must be provided")
@@ -108,7 +141,7 @@ def main():
         "我是一个大学生，家庭情况也不好，就在昨天乘火车上学时被人偷走身上仅有的300元，昨天一个人提着行李箱游走在大街上越走越麻烦，我无助地给妈妈打了个电话，我并没有告诉她我丢钱的事，就是说特别无聊就想家了，当时自己真的万分地想家，特别急切得想要回到家里，爸爸和妈妈都开导了我一番，当我听到家人的声音竟忍不住哭了起来，真的，这么多年，我从来不哭的，但就是在最无助的时候才知道家人的重要，我实在太想回家了，现在心里特别堵得慌，希望能有人帮我疏导疏导。",
         "我在大学是学生会心理健康服务部的，简称心理部，我们系在每年的5月和10月都有活动，要求表演关于大学生心理健康的话剧，因此要求每个成员都查找资料，写剧本，但因为我性格比较外向，平时也没有什么烦心事，所以特别想来了解一下大家在大学或者是上学的时候有什么事情让你难过过，更甚至出现过心理问题，希望大家帮忙想一下。",
         "我在一个地方当学徒，老板看我不会就老说还大学生，我听后就感觉老是讽刺我，他说有什么不会的就问他，结果我问了后，他又说怎么这么简单的问题都不会之类的，这里不是问谁对谁错。我想问为什么听到那些话后心里很愤怒，有时自己都控制不了生气，知道这是正常的，可心里就觉得他看我不顺眼，很愤怒。",
-        "不知道如何表达情绪怎么办？想过去咨询心理医生，但是不知道要说什么。所有情绪堵在胸口，并且大脑也很乱，无数件事搅在一起理不出头绪。特别想向人倾诉，但一旦有人问起却只会说“不知道”“没什么”这一类的话。而且我只是即将毕业的大学生，没有钱去看高级的医生。请问这样的我还有救么？",
+        "不知道如何表达情绪怎么办？想过去咨询心理医生，但是不知道要说什么。所有情绪堵在胸口，并且大脑也很乱，无数件事搅在一起理不出头绪。特别想向人倾诉，但一旦有人问起却只会说"不知道""没什么"这一类的话。而且我只是即将毕业的大学生，没有钱去看高级的医生。请问这样的我还有救么？",
         "本人大学生，6岁那年父母离异，我随母亲生活，离异后父亲患精神分裂症，现在已经基本痊愈。这么多年来，由于地域关系，我们见面机会甚少。每次见面他总是提过去的事。说实话，多少有点让我难受。已经和他分开生活15年，难免生疏。只是想问问该如何和他很好的交流，希望得到好的建议。",
         "我是一个正在考研的三流二本大学生，平时都会给同学一种比较成熟的形象，每次给父母打电话和女朋友在一起都看的很开，但是一到我一个人的时候总觉得特别压抑，耐性也变得非常差，集中精神复习不超过30分钟，一遇到不会的东西就变得很暴躁，想撕卷子喘粗气，这两天天天头疼，有什么办法可以改变现状吗？",
         "我明明才刚刚进入这个大学，我不想回去，即使我家离学校很近，我好像没有恋家情绪，我是不是不正常啊？",
