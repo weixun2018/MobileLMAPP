@@ -1,3 +1,8 @@
+'''
+This file implements a sensitive word filter using the flashtext library.
+It allows loading, checking, adding, and deleting sensitive words.
+'''
+
 from flashtext import KeywordProcessor
 from typing import Optional, List
 

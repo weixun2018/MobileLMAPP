@@ -1,3 +1,7 @@
+"""
+This script crawls a webpage to extract links from a Q&A section based on a keyword search.
+"""
+
 from DrissionPage import Chromium, ChromiumOptions
 import pandas as pd
 
