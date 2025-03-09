@@ -6,7 +6,7 @@ extracts relevant information, and formats it for further processing.
 import json
 
 # Read raw data
-with open('multi_turn_dataset_1.json', 'r', encoding='utf-8') as f:
+with open('original_standard_dataset.json', 'r', encoding='utf-8') as f:
     data = json.load(f)
 
 # Extract and save each message
@@ -25,6 +25,7 @@ for entry in data:
         print(f"Dialogue content: {conversation}")  # Print the conversation content
         
         # Extract the first three dialogue turns
+        # This helps preserve the contextual information while limiting the history length
         dialogue_history = conversation[:3]  # Extract the first three messages
         question = conversation[0]['input']  # Get input from the first message
         answer = conversation[0]['output']  # Get output from the first message
@@ -50,6 +51,6 @@ for entry in data:
     count += 1 
 
 # Save all dialogues to a JSON file
-output_file_path = 'test1_standard_dataset.json'  # Path for the output file
+output_file_path = 'standard_dataset.json'  # Path for the output file
 with open(output_file_path, 'w', encoding='utf-8') as outfile:
     json.dump(results, outfile, ensure_ascii=False, indent=4)  # Write results to JSON file 
