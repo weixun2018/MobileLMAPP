@@ -20,6 +20,7 @@
 
 
 Using Multi-turn Dialogue Standard Test Set:
+
 |Model|Training Data|Time|Average Score|BLEU-1|BLEU-2|BLEU-3|BLEU-4|Best Performer|
 |---|---|---|---|---|---|---|---|---|
 |**MiniCPM-2b**|Base|9'26"|0.0484|0.1021|0.0536|0.0265|0.0113||
@@ -36,9 +37,7 @@ Using Multi-turn Dialogue Standard Test Set:
 
 
 Using Single-turn Dialogue Standard Test Set:
-// ... existing code ...
 
-Using Multi-turn Dialogue Standard Test Set:
 |Model|Training Data|Time|Average Score|BLEU-1|BLEU-2|BLEU-3|BLEU-4|Best Performer|
 |---|---|---|---|---|---|---|---|---|
 |**MiniCPM-2b**|Base|5'02"|0.0606|0.1629|0.0551|0.0167|0.0077||
