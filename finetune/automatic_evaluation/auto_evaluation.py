@@ -31,7 +31,7 @@ def load_testset(test_path):
         test_data = json.load(f)
     return test_data
 
-def batch_generate(models, tokenizer, test_data, batch_size=40):
+def batch_generate(models, tokenizer, test_data, batch_size=10):
     """Batch generate responses
     Args:
         models (dict): A dictionary of model names and their corresponding model instances.
@@ -44,20 +44,39 @@ def batch_generate(models, tokenizer, test_data, batch_size=40):
     results = []
     for i in tqdm(range(0, len(test_data), batch_size)):
         batch = test_data[i:i+batch_size]
-        queries = [item['question'] for item in batch]
+        
+        # Construct input with dialogue history
+        formatted_queries = []
+        for item in batch:
+            dialogue_history = item.get('dialogue_history', [])
+            formatted_dialogue = ""
+            
+            # Construct historical dialogue
+            for turn in dialogue_history:
+                if turn['role'] == 'user':
+                    formatted_dialogue += f"求助者：{turn['content']}\n"
+                elif turn['role'] == 'assistant':
+                    formatted_dialogue += f"支持者：{turn['content']}\n"
+            
+            # Add the current question
+            if formatted_dialogue:
+                formatted_dialogue += "\n历史记录：\n\n"
+            formatted_dialogue += f"当前用户提问：\n{item['question']}"
+            
+            formatted_queries.append(formatted_dialogue)
 
         # Batch generation
         batch_responses = {}
         for model_name, model in models.items():
-            inputs = tokenizer(queries, return_tensors="pt", padding=True, truncation=True).to("cuda")
+            inputs = tokenizer(formatted_queries, return_tensors="pt", padding=True, truncation=True).to("cuda")
             outputs = model.generate(**inputs, max_length=512)
             batch_responses[model_name] = [tokenizer.decode(o, skip_special_tokens=True) for o in outputs]
 
         # Assemble results
-        for idx in range(len(queries)):
+        for idx in range(len(formatted_queries)):
             result = {
                 "id": batch[idx]['id'],
-                "question": queries[idx],
+                "question": formatted_queries[idx],
                 "reference": batch[idx]['answer'],
                 "responses": {k: v[idx] for k,v in batch_responses.items()},
                 "type": batch[idx].get('type', 'unknown')
@@ -111,7 +130,7 @@ def evaluate_results(results, eval_type):
         results (list): The list of generated results to evaluate.
         eval_type (str): The type of evaluation to perform (e.g., 'qa').
     Returns:
-        dict: A dictionary containing average BLEU scores for each model.
+        dict: A dictionary containing average BLEU scores and total score for each model.
     """
     metrics = defaultdict(lambda: defaultdict(float))
     valid_count = 0
@@ -133,8 +152,12 @@ def evaluate_results(results, eval_type):
     # Calculate average
     if valid_count > 0:
         for model in metrics:
+            total_score = 0.0
             for metric in metrics[model]:
                 metrics[model][metric] /= valid_count
+                # Add to total score (25% weight for each BLEU score)
+                total_score += metrics[model][metric] * 0.25
+            metrics[model]['total_score'] = total_score
 
     print(f"\nEvaluation type: {eval_type}")
     print(f"Valid sample count: {valid_count}")
@@ -160,8 +183,8 @@ def load_model(model_path):
 def main():
     """Main function to execute the evaluation process."""
     # Initialize model
-    # model_path = "/content/drive/MyDrive/knullcc/MiniCPM-2B-sft-bf16"
-    model_path = "/content/MiniCPM3-4B"
+    model_path = "/content/MiniCPM-2B-sft-bf16"
+    # model_path = "/content/MiniCPM3-4B"
     tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
 
     # Set padding token
@@ -171,15 +194,15 @@ def main():
     base_model = load_model(model_path)
 
     # Load LoRA model
-    peft_model = PeftModel.from_pretrained(base_model, "/content/drive/MyDrive/knullcc/MiniCPM-4b-10000-A100/checkpoint-1000")
+    peft_model = PeftModel.from_pretrained(base_model, "/content/drive/MyDrive/knullcc/MiniCPM-2b-10000-A100/checkpoint-1000")
 
     models = {
-        "MiniCPM3-4B": base_model,
-        "MiniCPM-4b-10000-A10": peft_model
+        "MiniCPM-2b": base_model,
+        "MiniCPM-2b-10000-A100": peft_model
     }
 
     # Configure test set path
-    test_path = "/content/MobileLMAPP_tools/standard_dataset.json"
+    test_path = "/content/MobileLMAPP_tools/standard_multi_dataset.json"
     # Load test set
     test_data = load_testset(test_path)
 
@@ -194,6 +217,7 @@ def main():
         print(f"\n{model} model:")
         for metric, value in scores.items():
             print(f"  {metric}: {value:.4f}")
+        print(f"  总得分: {scores['total_score']:.4f}")
 
     # Save detailed results
     with open('eval_results.json', 'w', encoding='utf-8') as f:
