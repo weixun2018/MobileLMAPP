@@ -50,17 +50,18 @@ def batch_generate(models, tokenizer, test_data, batch_size=10):
         for item in batch:
             dialogue_history = item.get('dialogue_history', [])
             formatted_dialogue = ""
-            
+            # Add the current question
+            if formatted_dialogue:
+                formatted_dialogue += "历史记录：\n\n"
+
             # Construct historical dialogue
             for turn in dialogue_history:
                 if turn['role'] == 'user':
                     formatted_dialogue += f"求助者：{turn['content']}\n"
                 elif turn['role'] == 'assistant':
                     formatted_dialogue += f"支持者：{turn['content']}\n"
+            formatted_dialogue += "\n"
             
-            # Add the current question
-            if formatted_dialogue:
-                formatted_dialogue += "\n历史记录：\n\n"
             formatted_dialogue += f"当前用户提问：\n{item['question']}"
             
             formatted_queries.append(formatted_dialogue)
