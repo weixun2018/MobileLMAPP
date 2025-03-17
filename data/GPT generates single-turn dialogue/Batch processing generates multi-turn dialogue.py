@@ -1,3 +1,9 @@
+"""
+This script processes an Excel file containing single-turn dialogues,
+generates payloads for a chat model, and sends requests to a specified URL.
+It handles responses and saves them in JSON format.
+"""
+
 import pandas as pd
 import requests
 import json
@@ -7,6 +13,17 @@ import time
 import re
 
 def read_excel_and_generate_payload(excel_path, start_id=1, end_id=6000):
+    """
+    Reads an Excel file and filters rows based on ID range.
+
+    Parameters:
+    excel_path (str): The path to the Excel file.
+    start_id (int): The starting ID for filtering (default is 1).
+    end_id (int): The ending ID for filtering (default is 6000).
+
+    Returns:
+    DataFrame: Filtered DataFrame containing the relevant rows.
+    """
     # Read Excel file
     df = pd.read_excel(excel_path)
     
@@ -23,6 +40,15 @@ def read_excel_and_generate_payload(excel_path, start_id=1, end_id=6000):
     return df_filtered
 
 def parse_response_to_json(response_text):
+    """
+    Parses the response text into a structured JSON format.
+
+    Parameters:
+    response_text (str): The response text to be parsed.
+
+    Returns:
+    dict: A dictionary containing the structured messages.
+    """
     try:
         # Replace escaped newlines
         text = response_text.replace('\\n', '\n')
@@ -49,6 +75,15 @@ def parse_response_to_json(response_text):
         return {"messages": []}
 
 def create_payload(row):
+    """
+    Creates a payload for the POST request based on the row data.
+
+    Parameters:
+    row (Series): A row from the DataFrame containing 'content' and 'response'.
+
+    Returns:
+    dict: The payload to be sent in the POST request.
+    """
     # Build POST request payload
     payload = {
         "model": "gpt-4o-mini",
@@ -66,6 +101,17 @@ def create_payload(row):
     return payload
 
 def send_request(payload, url, headers=None):
+    """
+    Sends a POST request to the specified URL with the given payload.
+
+    Parameters:
+    payload (dict): The payload to be sent in the request.
+    url (str): The URL to send the request to.
+    headers (dict, optional): Additional headers for the request.
+
+    Returns:
+    dict or None: The JSON response from the server or None if an error occurred.
+    """
     if headers is None:
         headers = {
             'Content-Type': 'application/json',
@@ -81,12 +127,23 @@ def send_request(payload, url, headers=None):
         return None
 
 def process_row(row, url, output_dir):
+    """
+    Processes a single row, sends a request, and saves the response.
+
+    Parameters:
+    row (Series): A row from the DataFrame.
+    url (str): The URL to send the request to.
+    output_dir (str): The directory to save the response JSON files.
+
+    Returns:
+    dict or None: The response from the server or None if an error occurred.
+    """
     try:
-        payload = create_payload(row)
-        response = send_request(payload, url)
+        payload = create_payload(row)  # Create payload for the request
+        response = send_request(payload, url)  # Send the request
         
         if response and 'choices' in response and response['choices']:
-            # Get content
+            # Get content from the response
             content = response['choices'][0]['message']['content']
             
             # Convert response text to JSON format
@@ -107,6 +164,18 @@ def process_row(row, url, output_dir):
         return None
 
 def process_excel_and_send_requests(excel_path, url, output_dir='data2', max_workers=10):
+    """
+    Processes the Excel file and sends requests concurrently.
+
+    Parameters:
+    excel_path (str): The path to the Excel file.
+    url (str): The URL to send the requests to.
+    output_dir (str): The directory to save the response JSON files (default is 'data2').
+    max_workers (int): The maximum number of threads to use (default is 10).
+
+    Returns:
+    list: A list of all responses received.
+    """
     # Create output directory
     os.makedirs(output_dir, exist_ok=True)
     
@@ -136,6 +205,10 @@ def process_excel_and_send_requests(excel_path, url, output_dir='data2', max_wor
     return all_responses
 
 def main():
+    """
+    Main function to execute the script.
+    It sets the Excel file path and the URL, processes the requests, and prints the total responses.
+    """
     excel_path = 'Single-turnDialogue.xlsx'  # Excel file path
     url = 'http://proxy/v1/chat/completions'  # Your POST interface URL
     

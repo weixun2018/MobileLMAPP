@@ -1,9 +1,21 @@
+"""
+This script processes a JSON file containing question and answer data,
+searches for a specific keyword in the questions, and saves the results
+to a CSV file.
+"""
+
 import json
 import pandas as pd
 
 def get_longest_answer(answers):
     """
-    Get the longest answer from the answer list
+    Get the longest answer from the answer list.
+    
+    Parameters:
+    answers (list): A list of answer dictionaries.
+
+    Returns:
+    str: The content of the longest answer.
     """
     if not answers:
         return ""
@@ -11,6 +23,14 @@ def get_longest_answer(answers):
     return max(answers, key=lambda x: len(x.get('content', '')))['content']
 
 def search_and_save_to_csv(file_path, keyword, output_file):
+    """
+    Search for a keyword in the questions of a JSON file and save the results to a CSV file.
+    
+    Parameters:
+    file_path (str): The path to the input JSON file.
+    keyword (str): The keyword to search for in the questions.
+    output_file (str): The path to the output CSV file.
+    """
     # List to store results
     results = []
     

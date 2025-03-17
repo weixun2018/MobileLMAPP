@@ -1,9 +1,20 @@
+"""
+This script merges multiple JSON files containing conversation data into a single JSON file,
+and then splits the merged data into training and validation sets.
+"""
+
 import json
 import os
 from pathlib import Path
 import random
 
 def merge_json_files(data_dir):
+    """
+    Merges JSON files from the specified directory and splits the merged data into training and validation sets.
+
+    Parameters:
+    data_dir (str): The directory containing the JSON files to be merged.
+    """
     # Create an empty list to store all conversation data
     merged_data = []
     
