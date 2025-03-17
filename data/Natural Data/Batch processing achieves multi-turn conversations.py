@@ -1,3 +1,9 @@
+"""
+This script processes a CSV file containing single-turn dialogues,
+generates payloads for a chat model, and sends requests to an API
+to obtain multi-turn conversation responses.
+"""
+
 import pandas as pd
 import requests
 import json
@@ -7,6 +13,15 @@ import time
 import re
 
 def read_excel_and_generate_payload(excel_path):
+    """
+    Reads a CSV file and generates a cleaned DataFrame for processing.
+
+    Parameters:
+    excel_path (str): The path to the CSV file.
+
+    Returns:
+    DataFrame: A cleaned DataFrame containing the relevant data.
+    """
     # Read CSV file with strict parameters to handle multi-line content
     df = pd.read_csv(
         excel_path,
@@ -38,6 +53,15 @@ def read_excel_and_generate_payload(excel_path):
     return df
 
 def parse_response_to_json(response_text):
+    """
+    Parses the response text from the API into a structured JSON format.
+
+    Parameters:
+    response_text (str): The raw response text from the API.
+
+    Returns:
+    dict: A dictionary containing the structured messages.
+    """
     try:
         # Replace escaped newline characters
         text = response_text.replace('\\n', '\n')
@@ -67,8 +91,8 @@ def parse_response_to_json(response_text):
         
         messages = []
         for i, match in enumerate(matches, 1):
-            user_content = re.sub(r'\s+', ' ', match[1]).strip()
-            assistant_content = re.sub(r'\s+', ' ', match[2]).strip()
+            user_content = re.sub(r'\s+', ' ', match[1]).strip()  # Clean user content
+            assistant_content = re.sub(r'\s+', ' ', match[2]).strip()  # Clean assistant content
             
             if user_content and assistant_content:  # Ensure content is not empty
                 messages.append({"role": "user", "content": user_content})
@@ -83,6 +107,15 @@ def parse_response_to_json(response_text):
         return {"messages": []}
 
 def create_payload(row):
+    """
+    Creates a payload for the API request based on the row data.
+
+    Parameters:
+    row (Series): A row from the DataFrame containing 'question' and 'response'.
+
+    Returns:
+    dict: The payload to be sent to the API.
+    """
     try:
         # Ensure correct column names 'question' and 'response'
         question = str(row['question']).strip()
@@ -107,6 +140,17 @@ def create_payload(row):
         return None
 
 def send_request(payload, url, headers=None):
+    """
+    Sends a POST request to the specified URL with the given payload.
+
+    Parameters:
+    payload (dict): The payload to send in the request.
+    url (str): The URL to send the request to.
+    headers (dict, optional): Additional headers for the request.
+
+    Returns:
+    dict: The JSON response from the API, or None if an error occurred.
+    """
     if headers is None:
         headers = {
             'Content-Type': 'application/json',
@@ -114,14 +158,25 @@ def send_request(payload, url, headers=None):
         }
     
     try:
-        response = requests.post(url, json=payload, headers=headers)
-        response.raise_for_status()
-        return response.json()
+        response = requests.post(url, json=payload, headers=headers)  # Send the request
+        response.raise_for_status()  # Raise an error for bad responses
+        return response.json()  # Return the JSON response
     except requests.exceptions.RequestException as e:
         print(f"Request error occurred: {e}")
         return None
 
 def process_row(row, url, output_dir):
+    """
+    Processes a single row of data, sending a request and saving the response.
+
+    Parameters:
+    row (Series): A row from the DataFrame.
+    url (str): The URL to send the request to.
+    output_dir (str): The directory to save the response files.
+
+    Returns:
+    dict: The response from the API, or None if an error occurred.
+    """
     try:
         # First verify ID format
         if not re.match(r'^[a-f0-9]{32}$', str(row['id'])):
@@ -133,22 +188,22 @@ def process_row(row, url, output_dir):
             print(f"Missing necessary columns, ID: {row['id']}")
             return None
             
-        payload = create_payload(row)
+        payload = create_payload(row)  # Create the payload
         if payload is None:
             print(f"Failed to create payload, ID: {row['id']}")
             return None
             
-        response = send_request(payload, url)
+        response = send_request(payload, url)  # Send the request
         
         if response and 'choices' in response and response['choices']:
-            content = response['choices'][0]['message']['content']
-            conversation_json = parse_response_to_json(content)
+            content = response['choices'][0]['message']['content']  # Extract content from response
+            conversation_json = parse_response_to_json(content)  # Parse the response content
             
             hash_id = str(row['id']).strip()
-            response_file = os.path.join(output_dir, f'{hash_id}.json')
+            response_file = os.path.join(output_dir, f'{hash_id}.json')  # Define the output file path
             
             with open(response_file, 'w', encoding='utf-8') as f:
-                json.dump(conversation_json, f, ensure_ascii=False, indent=4)
+                json.dump(conversation_json, f, ensure_ascii=False, indent=4)  # Save the response as JSON
             
             print(f"Processed ID: {hash_id}")
             return response
@@ -160,26 +215,41 @@ def process_row(row, url, output_dir):
         return None
 
 def process_excel_and_send_requests(excel_path, url, output_dir='data', max_workers=15):
-    os.makedirs(output_dir, exist_ok=True)
+    """
+    Processes the Excel file and sends requests concurrently.
+
+    Parameters:
+    excel_path (str): The path to the Excel file.
+    url (str): The URL to send the requests to.
+    output_dir (str): The directory to save the response files.
+    max_workers (int): The maximum number of threads to use for processing.
+
+    Returns:
+    list: A list of responses from the API.
+    """
+    os.makedirs(output_dir, exist_ok=True)  # Create output directory if it doesn't exist
     
-    df = read_excel_and_generate_payload(excel_path)
+    df = read_excel_and_generate_payload(excel_path)  # Read and clean the data
     all_responses = []
     
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = [
-            executor.submit(process_row, row, url, output_dir) 
+            executor.submit(process_row, row, url, output_dir)  # Submit each row for processing
             for _, row in df.iterrows()
         ]
         
         for future in concurrent.futures.as_completed(futures):
-            response = future.result()
+            response = future.result()  # Get the result of the future
             if response:
-                all_responses.append(response)
-            time.sleep(0.1)
+                all_responses.append(response)  # Collect successful responses
+            time.sleep(0.1)  # Sleep to avoid overwhelming the server
     
     return all_responses
 
 def main():
+    """
+    Main function to execute the script.
+    """
     excel_path = 'Single-turn dialogue data.csv'
     url = 'http://proxy/v1/chat/completions'
     output_dir = 'data'
@@ -197,8 +267,8 @@ def main():
         print("Available columns:", df.columns.tolist())
         return
     
-    responses = process_excel_and_send_requests(excel_path, url, output_dir)
+    responses = process_excel_and_send_requests(excel_path, url, output_dir)  # Process the data and send requests
     print(f"Processed {len(responses)} responses in total")
 
 if __name__ == "__main__":
-    main()
+    main()  # Execute the main function
