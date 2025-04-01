@@ -41,14 +41,14 @@ def load_testset(test_path):
 
             processed_item = {
                 'id': len(processed_data), 
-                'question': last_question,
+                'question': item['instruction'],  # Keep the complete instruction
                 'answer': item['output'],
                 'type': 'qa'
             }
             processed_data.append(processed_item)
     return processed_data
 
-def batch_generate(models, tokenizer, test_data, batch_size=25):
+def batch_generate(models, tokenizer, test_data, batch_size=20):
     """Batch generate responses
     Args:
         models (dict): A dictionary of model names and their corresponding model instances
@@ -66,11 +66,36 @@ def batch_generate(models, tokenizer, test_data, batch_size=25):
         formatted_queries = []
         for item in batch:
             # Use standardized prompt template
-            query = f"<系统>现在你是一个心理专家，我有一些心理问题，请你用专业的知识帮我解决。<用户>来访者：{item['question']}<AI>医生："
+            # query = f"<系统>现在你是一个心理专家，我有一些心理问题，请你用专业的知识帮我解决。请只回答医生的部分，不要生成用户的回复。<用户>来访者：{item['question']}<AI>医生："
+            query = item['question']
             formatted_queries.append(query)
 
         # Batch generation
         batch_responses = {}
+
+        def clean_response(response):
+            """Clear the generated responses, removing all user replies and system tags."""
+            # Define all markers that need to be processed
+            cut_markers = ["<用户>", "<系统>", "<用户", "<系统"]
+            
+            # Find the position of the first occurrence of the marker
+            positions = []
+            for marker in cut_markers:
+                pos = response.find(marker)
+                if pos != -1:  # If marker is found
+                    positions.append(pos)
+            
+            # If any markers are found, truncate at the earliest marker
+            if positions:
+                first_cut = min(positions)
+                response = response[:first_cut].strip()
+                
+            # Remove the possible "来访者：" section
+            if "来访者：" in response:
+                response = response.split("来访者：")[0].strip()
+                
+            return response
+
         for model_name, model in models.items():
             # Enable evaluation mode
             model.eval()
@@ -88,8 +113,10 @@ def batch_generate(models, tokenizer, test_data, batch_size=25):
                     return_dict_in_generate=False,
                     max_new_tokens=256,
                     do_sample=True,
-                    temperature=0.1,
-                    eos_token_id=tokenizer.eos_token_id
+                    temperature=0.2,
+                    pad_token_id=73440,
+                    eos_token_id=73440
+                    # eos_token_id=tokenizer.eos_token_id
                 )
 
             # Decode output
@@ -98,6 +125,7 @@ def batch_generate(models, tokenizer, test_data, batch_size=25):
             for response in decoded_outputs:
                 if "医生：" in response:
                     response = response.split("医生：")[-1].strip()
+                    response = clean_response(response)
                 cleaned_responses.append(response)
             batch_responses[model_name] = cleaned_responses
 
@@ -240,7 +268,6 @@ def main():
 
     # Define all fine-tuned model paths to test
     adapter_paths = [
-        "/content/drive/MyDrive/knullcc/MiniCPM-4b-7000-A100",
         "/content/drive/MyDrive/knullcc/MiniCPM-4b-4975-A100"
     ]
 
@@ -272,7 +299,7 @@ def main():
         print(f"{model_name} loaded")
 
     # Configure test set path
-    test_path = "/content/MobileLMAPP_tools/converted_10.json"
+    test_path = "/content/MobileLMAPP_tools/eval_data/test/converted_200.json"
     test_data = load_testset(test_path)
 
     # Generate responses in batch
@@ -288,7 +315,6 @@ def main():
 
     # Print all model evaluation results comparison
     base_scores = qa_metrics['MiniCPM-4b-base']
-    print("\nBase Model vs Fine-tuned Models:")
     
     for metric in metrics_list:
         print(f"\n{metric}:")
