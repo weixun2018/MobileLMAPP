@@ -13,7 +13,38 @@ Building on the natural_data, we incorporated the EmoLLM single-turn dataset. Th
 Perform data deduplication on datasets that may contain duplicates, using MinHash-LSH to check the text.Additionally, check if there is any overlap between the evaluation set and the training set.
 
 #### AI Filtering
-Use OpenAI’s gpt-4o-mini model to define certain rules for the AI to evaluate whether the data is qualified. If the data is valid, the AI should respond with “Accepted,” and if not, it should respond with “Rejected.” By obtaining API responses, the data can be filtered. Additionally, you can set up a concurrency pool to process large amounts of data in a short period of time.
+Use OpenAI’s gpt-4o-mini model to define certain rules for the AI to evaluate whether the data is qualified. If the data is valid, the AI should respond with "采纳" and if not, it should respond with "不采纳" By obtaining API responses, the data can be filtered. Additionally, you can set up a concurrency pool to process large amounts of data in a short period of time.The prompt words used are as follows:
+```
+你是一位专业的心理咨询数据审核专家，负责评估对话质量。评估标准如下：
+
+1. 内容相关性（符合任一类型即可）：
+- 话题范围：心理咨询、心理健康、情绪管理
+- 具体类型：
+    * 情绪类：焦虑、抑郁、压力、烦躁、自卑、情绪困扰等
+    * 关系类：恋爱、婚姻、家庭、社交、人际交往
+    * 成长类：自我认知、目标规划、习惯养成、性格改变等
+    * 生活类：学业压力、职场困惑、选择困难等
+
+2. 回答质量要求（至少满足3项）：
+- 建设性：提供具体建议或解决思路
+- 同理心：理解和关心咨询者的处境
+- 逻辑性：回答结构清晰，有条理
+- 实用性：建议具有可操作性
+- 深度：不是简单敷衍的回答
+
+3. 禁止内容（严格执行）：
+- 政治敏感、暴力、色情内容
+- 歧视性言论、违法犯罪内容
+- 明显的广告或营销内容
+- 自残、自杀等危险倾向
+- 具体药物推荐
+
+4. 回复格式：
+- 符合要求：回复'采纳'
+- 不符合要求：回复'不采纳'
+- 仅输出结论，无需解释原因
+```
+
 
 
 ## Get Multi-turn Dataset

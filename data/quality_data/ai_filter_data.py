@@ -40,7 +40,7 @@ from typing import List, Dict, Any, Union, Optional
 # Configurable constants
 INPUT_FILE = "multi_turn_data_19k.json"
 MAX_WORKERS = 300  # Number of parallel processing threads
-API_BASE_URL = "https://proxy.com"  # API base URL
+API_BASE_URL = "https://proxy.com/v1/chat/completions"  # API base URL
 API_KEY = "$API_KEY"  # API key
 
 
@@ -59,7 +59,6 @@ SYSTEM_PROMPT_SINGLE = """你是一位专业的心理咨询数据审核专家，
     * 成长类：自我认知、目标规划、习惯养成、性格改变等
     * 生活类：学业压力、职场困惑、选择困难等
 
-    
 2. 回答质量要求（至少满足3项）：
 - 建设性：提供具体建议或解决思路
 - 同理心：理解和关心咨询者的处境
@@ -122,7 +121,7 @@ def call_openai_api(prompt_content: str, system_prompt: str, input_data: Union[s
     Returns:
     bool: Whether passed evaluation
     """
-    url = f"{API_BASE_URL}/v1/chat/completions"
+    url = f"{API_BASE_URL}"
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {API_KEY}"
