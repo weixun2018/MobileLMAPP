@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.ProjectV2" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/telegram_blue</item>
+        <item name="colorPrimaryVariant">@color/telegram_blue_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/telegram_blue</item>
+        <item name="colorSecondaryVariant">@color/telegram_blue_dark</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="android:statusBarColor">@color/telegram_background</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">@color/telegram_background</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+
+    <!-- 启动页主题 -->
+    <style name="Theme.ProjectV2.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowBackground">@color/white</item>
+    </style>
+</resources>
