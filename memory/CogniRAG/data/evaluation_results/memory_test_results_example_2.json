@@ -1,0 +1,83 @@
+{
+  "timestamp": "2025-05-15T23:11:10.057524",
+  "score_questions": [
+    {
+      "question": "王峰喜欢什么运动?",
+      "key_words": [
+        "篮球",
+        "攀岩"
+      ],
+      "response": "王峰喜欢篮球和攀岩这两种运动。",
+      "score": 1.0,
+      "details": {
+        "found_keywords": [
+          "篮球",
+          "攀岩"
+        ],
+        "missing_keywords": [],
+        "coverage": "2/2"
+      }
+    },
+    {
+      "question": "王峰最近在读什么书?",
+      "key_words": [
+        "二战全史"
+      ],
+      "response": "根据您提供的信息，王峰最近正在阅读《二战全史》这本书。",
+      "score": 1.0,
+      "details": {
+        "found_keywords": [
+          "二战全史"
+        ],
+        "missing_keywords": [],
+        "coverage": "1/1"
+      }
+    },
+    {
+      "question": "王峰打算去参观什么地方?",
+      "key_words": [
+        "抗战纪念馆"
+      ],
+      "response": "根据您提供的信息，王峰计划参观抗战纪念馆。",
+      "score": 1.0,
+      "details": {
+        "found_keywords": [
+          "抗战纪念馆"
+        ],
+        "missing_keywords": [],
+        "coverage": "1/1"
+      }
+    },
+    {
+      "question": "王峰在篮球场上打什么位置?",
+      "key_words": [
+        "小前锋"
+      ],
+      "response": "王峰在篮球场上打小前锋位置。",
+      "score": 1.0,
+      "details": {
+        "found_keywords": [
+          "小前锋"
+        ],
+        "missing_keywords": [],
+        "coverage": "1/1"
+      }
+    },
+    {
+      "question": "王峰想写一本关于什么的书?",
+      "key_words": [
+        "战术演变"
+      ],
+      "response": "根据您提供的信息，王峰想写一本关于战术演变的书。",
+      "score": 1.0,
+      "details": {
+        "found_keywords": [
+          "战术演变"
+        ],
+        "missing_keywords": [],
+        "coverage": "1/1"
+      }
+    }
+  ],
+  "overall_score": 1.0
+}
