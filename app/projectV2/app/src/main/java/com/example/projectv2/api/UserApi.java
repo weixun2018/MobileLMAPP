@@ -3,12 +3,15 @@ package com.example.projectv2.api;
 import com.example.projectv2.model.MbtiQuestion;
 import com.example.projectv2.model.MbtiType;
 import com.example.projectv2.model.User;
+import com.example.projectv2.model.SCL90Result;
+import com.example.projectv2.model.SCL90Question;
 
 import java.util.List;
 import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
@@ -49,4 +52,17 @@ public interface UserApi {
             @Part MultipartBody.Part file,
             @Part("userId") RequestBody userId
     );
+    
+    // SCL-90相关接口
+    @GET("api/scl90/questions")
+    Call<List<SCL90Question>> getSCL90Questions();
+    
+    @POST("api/scl90/results")
+    Call<SCL90Result> saveSCL90Result(@Body SCL90Result result);
+    
+    @GET("api/scl90/results/{userId}")
+    Call<SCL90Result> getSCL90Result(@Path("userId") Long userId);
+    
+    @DELETE("api/scl90/results/{userId}")
+    Call<Void> deleteSCL90Result(@Path("userId") Long userId);
 } 

@@ -40,6 +40,10 @@
             android:name=".MainActivity"
             android:exported="false" />
 
+        <service
+            android:name=".ModelDownloadService"
+            android:exported="false" />
+
     </application>
 
 </manifest>

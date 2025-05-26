@@ -91,4 +91,13 @@ public class ChatDbHelper extends SQLiteOpenHelper {
         cursor.close();
         return messages;
     }
+    
+    /**
+     * 删除数据库中所有聊天消息
+     * @return 删除的消息数量
+     */
+    public int deleteAllMessages() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        return db.delete(TABLE_MESSAGES, null, null);
+    }
 } 
