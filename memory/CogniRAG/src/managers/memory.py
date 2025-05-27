@@ -7,7 +7,7 @@ import time
 import chromadb
 from datetime import datetime
 from chromadb.errors import NotFoundError
-from config.config import Config
+from src.config.config import Config
 
 
 class MemoryManager:

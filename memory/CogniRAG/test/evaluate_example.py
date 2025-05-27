@@ -1,24 +1,28 @@
 """多轮对话记忆评估测试"""
 
 import os
+import sys
 import json
 from rich.table import Table
 from rich.console import Console
 from typing import List, Dict
 from datetime import datetime
 
+# 添加项目根目录到Python路径
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from src.app import ResponseProcessor
 
 
 file_name = "example_1"
 with open(
-    f"ending/multi_turn_examples/extracted_examples/{file_name}.json", "r", encoding="utf-8"
+    f"data/extracted_examples/{file_name}.json", "r", encoding="utf-8"
 ) as f:
     conversation_test_cases = json.load(f)
 
 
-# 添加MemoRAG适配器类，将main.py中的功能与evaluate_simple.py对接
-class MemoRAG:
+# 添加CogniRAG适配器类，将main.py中的功能与evaluate_simple.py对接
+class CogniRAG:
     """适配器类，将ResponseProcessor的功能封装为evaluate_simple.py需要的接口"""
 
     def __init__(self):
@@ -39,7 +43,7 @@ class MemoryEvaluator:
     def __init__(self, conversation_data: List[Dict], memory_system=None):
         self.conversation_data = conversation_data
         self.console = Console()
-        self.memory_system = memory_system or MemoRAG()
+        self.memory_system = memory_system or CogniRAG()
         # 创建结果目录
         self.results_dir = "evaluation_results"
         os.makedirs(self.results_dir, exist_ok=True)

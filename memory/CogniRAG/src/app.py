@@ -2,11 +2,11 @@
 
 import json
 import time
-from models.model_interface import ModelInterface
-from managers.message_history import MessageHistory
-from managers.user_profile import UserProfileManager
-from managers.memory import MemoryManager
-from config.config import Config
+from src.models.model_interface import ModelInterface
+from src.managers.message_history import MessageHistory
+from src.managers.user_profile import UserProfileManager
+from src.managers.memory import MemoryManager
+from src.config.config import Config
 
 
 class ResponseProcessor:

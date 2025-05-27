@@ -1,7 +1,7 @@
 """消息历史管理模块，负责处理对话历史"""
 
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, trim_messages
-from config.config import Config
+from src.config.config import Config
 
 
 class MessageHistory:

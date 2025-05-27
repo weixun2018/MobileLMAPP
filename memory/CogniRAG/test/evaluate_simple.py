@@ -281,8 +281,8 @@ memory_test_cases = [
 ]
 
 
-# 添加MemoRAG适配器类，将main.py中的功能与evaluate_simple.py对接
-class MemoRAG:
+# 添加CogniRAG适配器类，将main.py中的功能与evaluate_simple.py对接
+class CogniRAG:
     """适配器类，将ResponseProcessor的功能封装为evaluate_simple.py需要的接口"""
 
     def __init__(self):
@@ -303,7 +303,7 @@ class MemoryEvaluator:
     def __init__(self, test_cases: List[Dict], memory_system=None):
         self.test_cases = test_cases
         self.console = Console()
-        self.memory_system = memory_system or MemoRAG()
+        self.memory_system = memory_system or CogniRAG()
         # 创建结果目录
         self.results_dir = "data/evaluation_results"
         os.makedirs(self.results_dir, exist_ok=True)

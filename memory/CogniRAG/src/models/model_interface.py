@@ -3,7 +3,7 @@
 import torch
 import time
 from transformers import AutoModelForCausalLM, AutoTokenizer, AutoModel
-from config.config import Config
+from src.config.config import Config
 
 class ModelInterface:
     """模型接口类，封装与模型的交互"""
