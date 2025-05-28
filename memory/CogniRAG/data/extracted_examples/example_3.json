@@ -354,12 +354,12 @@
   {
     "role": "score",
     "question": "李雪喜欢去哪里旅行?",
-    "key_words": ["冰岛", "极光"]
+    "key_words": ["冰岛"]
   },
   {
     "role": "score",
     "question": "李雪喜欢看什么电影?",
-    "key_words": ["科幻"]
+    "key_words": ["《罗马假日》", "《卡萨布兰卡》"]
   },
   {
     "role": "score",

@@ -4,33 +4,33 @@
     {
       "question": "李雪喜欢去哪里旅行?",
       "key_words": [
-        "冰岛",
-        "极光"
+        "冰岛"
       ],
       "response": "李雪喜欢去冰岛旅行。",
       "score": 1.0,
       "details": {
         "found_keywords": [
-          "冰岛",
-          "极光"
+          "冰岛"
         ],
         "missing_keywords": [],
-        "coverage": "2/2"
+        "coverage": "1/1"
       }
     },
     {
       "question": "李雪喜欢看什么电影?",
       "key_words": [
-        "科幻"
+        "《罗马假日》",
+        "《卡萨布兰卡》"
       ],
       "response": "根据您提供的信息，李雪喜欢看《罗马假日》和《卡萨布兰卡》。",
       "score": 1.0,
       "details": {
         "found_keywords": [
-          "科幻"
+          "《罗马假日》",
+          "《卡萨布兰卡》"
         ],
         "missing_keywords": [],
-        "coverage": "1/1"
+        "coverage": "2/2"
       }
     },
     {
