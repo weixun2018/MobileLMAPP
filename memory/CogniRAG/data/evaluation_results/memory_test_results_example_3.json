@@ -1,0 +1,108 @@
+{
+  "timestamp": "2025-05-15T23:36:49.561243",
+  "score_questions": [
+    {
+      "question": "李雪喜欢去哪里旅行?",
+      "key_words": [
+        "冰岛"
+      ],
+      "response": "李雪喜欢去冰岛旅行。",
+      "score": 1.0,
+      "details": {
+        "found_keywords": [
+          "冰岛"
+        ],
+        "missing_keywords": [],
+        "coverage": "1/1"
+      }
+    },
+    {
+      "question": "李雪喜欢看什么电影?",
+      "key_words": [
+        "《罗马假日》",
+        "《卡萨布兰卡》"
+      ],
+      "response": "根据您提供的信息，李雪喜欢看《罗马假日》和《卡萨布兰卡》。",
+      "score": 1.0,
+      "details": {
+        "found_keywords": [
+          "《罗马假日》",
+          "《卡萨布兰卡》"
+        ],
+        "missing_keywords": [],
+        "coverage": "2/2"
+      }
+    },
+    {
+      "question": "李雪喜欢看什么类型的书?",
+      "key_words": [
+        "侦探"
+      ],
+      "response": "根据您提供的信息，我们目前没有关于李雪喜欢阅读什么类型书籍的具体信息。不过，既然您提到了科幻，这可能是一个值得探索的领域。科幻文学通常包含对未来、科技、空间探索以及异世界等主题的想象。这类书籍往往富有创意和前瞻性，能够",
+      "score": 0.0,
+      "details": {
+        "found_keywords": [],
+        "missing_keywords": [
+          "侦探"
+        ],
+        "coverage": "0/1"
+      }
+    },
+    {
+      "question": "李雪喜欢哪些歌手?",
+      "key_words": [
+        "Coldplay",
+        "Eva Cassidy",
+        "The Lumineers",
+        "Imagine Dragons"
+      ],
+      "response": "李雪是一位音乐爱好者，她特别喜欢Lumineers、Imagine Dragons和Believer这些歌手。这些乐队的音乐风格多样，既有抒情的旋律，也有充满活力的节奏，相信能为她的生活带来不少乐趣。",
+      "score": 1.0,
+      "details": {
+        "found_keywords": [
+          "Imagine Dragons"
+        ],
+        "missing_keywords": [
+          "Coldplay",
+          "Eva Cassidy",
+          "The Lumineers"
+        ],
+        "coverage": "4/4"
+      }
+    },
+    {
+      "question": "李雪在写什么类型的故事?",
+      "key_words": [
+        "科幻",
+        "侦探"
+      ],
+      "response": "根据您提供的信息，李雪是一位科幻小说爱好者。她特别喜欢那些充满想象力和创新思维的科幻作品。她常常被这些故事中的科技奇观、未来世界和异域文明所吸引。李雪在写作时，也倾向于探索科技与人类社会、伦理道德之间的相互作用，她",
+      "score": 1.0,
+      "details": {
+        "found_keywords": [
+          "科幻"
+        ],
+        "missing_keywords": [
+          "侦探"
+        ],
+        "coverage": "1/2"
+      }
+    },
+    {
+      "question": "李雪在跳蚤市场找到了什么?",
+      "key_words": [
+        "日记"
+      ],
+      "response": "根据您提供的信息，关于李雪在跳蚤市场找到了什么，我们还没有相关的记录。可能是您忘记告诉我们了，或者这个信息没有被添加到我们的对话历史中。如果您能提供更多的细节或者重新描述一下情景，我或许能更好地帮助您。",
+      "score": 0.0,
+      "details": {
+        "found_keywords": [],
+        "missing_keywords": [
+          "日记"
+        ],
+        "coverage": "0/1"
+      }
+    }
+  ],
+  "overall_score": 0.1
+}

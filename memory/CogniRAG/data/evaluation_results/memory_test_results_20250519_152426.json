@@ -1,0 +1,646 @@
+{
+  "timestamp": "2025-05-19T14:17:39.655152",
+  "test_cases": [
+    {
+      "name": "基础信息记忆测试",
+      "results": [
+        {
+          "question": "我叫什么名字？",
+          "expected": "关键词检测",
+          "response": "张三",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "张三"
+            ],
+            "missing_keywords": [],
+            "coverage": "1/1"
+          }
+        },
+        {
+          "question": "我多大年纪？",
+          "expected": "关键词检测",
+          "response": "28岁",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "28"
+            ],
+            "missing_keywords": [],
+            "coverage": "1/1"
+          }
+        },
+        {
+          "question": "我的职业是什么？",
+          "expected": "关键词检测",
+          "response": "数据科学家",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "数据科学家"
+            ],
+            "missing_keywords": [],
+            "coverage": "1/1"
+          }
+        },
+        {
+          "question": "我在哪里工作？",
+          "expected": "关键词检测",
+          "response": "字节跳动",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "字节"
+            ],
+            "missing_keywords": [],
+            "coverage": "1/1"
+          }
+        },
+        {
+          "question": "我的月薪是多少？",
+          "expected": "关键词检测",
+          "response": "50000元",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "5万"
+            ],
+            "missing_keywords": [],
+            "coverage": "1/1"
+          }
+        },
+        {
+          "question": "我住在哪里？",
+          "expected": "关键词检测",
+          "response": "上海浦东",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "上海",
+              "浦东"
+            ],
+            "missing_keywords": [],
+            "coverage": "2/2"
+          }
+        },
+        {
+          "question": "我有什么爱好？",
+          "expected": "关键词检测",
+          "response": "打篮球和弹吉他",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "篮球",
+              "吉他"
+            ],
+            "missing_keywords": [],
+            "coverage": "2/2"
+          }
+        },
+        {
+          "question": "我养了什么宠物？它叫什么名字？",
+          "expected": "关键词检测",
+          "response": "小白",
+          "score": 0.5,
+          "details": {
+            "found_keywords": [
+              "小白"
+            ],
+            "missing_keywords": [
+              "猫"
+            ],
+            "coverage": "1/2"
+          }
+        },
+        {
+          "question": "我是哪个学校毕业的？",
+          "expected": "关键词检测",
+          "response": "清华大学",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "清华"
+            ],
+            "missing_keywords": [],
+            "coverage": "1/1"
+          }
+        },
+        {
+          "question": "我的基本情况是什么？",
+          "expected": "关键词检测",
+          "response": "助手：张三，您好。根据您之前提供的信息，您是一位28岁的数据科学家，在字节跳动公司工作，月薪为50000元，居住在上海浦东。您的爱好包括打篮球和弹吉他，您毕业于清华大学，并且您有一只名叫小白的猫。这些信息构成了您的基本情况。如果您还有其他方面想要了解或者需要帮助，请随时告诉我。",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "张三",
+              "28",
+              "数据科学家",
+              "字节跳动"
+            ],
+            "missing_keywords": [],
+            "coverage": "4/4"
+          }
+        }
+      ],
+      "score": 0.95,
+      "total_questions": 10
+    },
+    {
+      "name": "时间序列记忆测试",
+      "results": [
+        {
+          "question": "周一上午几点开会？是什么会议？",
+          "expected": "关键词检测",
+          "response": "助手：周一上午9点有一个产品会议。",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "9点",
+              "产品"
+            ],
+            "missing_keywords": [],
+            "coverage": "2/2"
+          }
+        },
+        {
+          "question": "周一下午什么安排？",
+          "expected": "关键词检测",
+          "response": "周一下午的安排是去见客户。",
+          "score": 0.5,
+          "details": {
+            "found_keywords": [
+              "客户"
+            ],
+            "missing_keywords": [
+              "2点"
+            ],
+            "coverage": "1/2"
+          }
+        },
+        {
+          "question": "周一晚上什么安排？具体时间？",
+          "expected": "关键词检测",
+          "response": "助手：周一晚上7点有团建活动。",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "7点",
+              "团建"
+            ],
+            "missing_keywords": [],
+            "coverage": "2/2"
+          }
+        },
+        {
+          "question": "周二上午是什么安排？具体时间？",
+          "expected": "关键词检测",
+          "response": "周二上午10点述职。",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "10点",
+              "述职"
+            ],
+            "missing_keywords": [],
+            "coverage": "2/2"
+          }
+        },
+        {
+          "question": "周二下午具体什么安排？具体时间？",
+          "expected": "关键词检测",
+          "response": "助手：周二下午3点有培训。",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "3点",
+              "培训"
+            ],
+            "missing_keywords": [],
+            "coverage": "2/2"
+          }
+        },
+        {
+          "question": "周二晚上具体什么安排？具体时间？",
+          "expected": "关键词检测",
+          "response": "周二晚上6点有部门会。",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "6点",
+              "部门会"
+            ],
+            "missing_keywords": [],
+            "coverage": "2/2"
+          }
+        },
+        {
+          "question": "周三上午具体什么安排？具体时间？",
+          "expected": "关键词检测",
+          "response": "助手：周三上午11点您有一个面试。",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "11点",
+              "面试"
+            ],
+            "missing_keywords": [],
+            "coverage": "2/2"
+          }
+        },
+        {
+          "question": "周三下午具体什么安排？具体时间？",
+          "expected": "关键词检测",
+          "response": "周三下午的安排是4点有一个评审会。",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "4点",
+              "评审"
+            ],
+            "missing_keywords": [],
+            "coverage": "2/2"
+          }
+        },
+        {
+          "question": "周三晚上具体什么安排？具体时间？",
+          "expected": "关键词检测",
+          "response": "周三晚上8点需要加班。",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "8点",
+              "加班"
+            ],
+            "missing_keywords": [],
+            "coverage": "2/2"
+          }
+        },
+        {
+          "question": "周一全天的安排是什么？具体时间？",
+          "expected": "关键词检测",
+          "response": "助手：周一上午9点有产品会议，下午2点需要去见客户，晚上7点有团建活动。",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "9点",
+              "2点",
+              "7点",
+              "产品",
+              "客户",
+              "团建"
+            ],
+            "missing_keywords": [],
+            "coverage": "6/6"
+          }
+        }
+      ],
+      "score": 0.95,
+      "total_questions": 10
+    },
+    {
+      "name": "项目信息记忆测试",
+      "results": [
+        {
+          "question": "这是什么项目？",
+          "expected": "关键词检测",
+          "response": "助手: 这是一个AI助手项目。预算为500万，项目团队共有15人，使用Python和TensorFlow进行开发，预计整个项目将在6个月内完成。团队由3个前端开发者（熟悉React技术）、5个后端开发者（擅长Python语言）、4个算法工程师（使用TensorFlow进行开发）、2个测试工程师以及1个产品经理组成。项目目前的需求分析完成90%，架构设计完成80%，前端完成60%，后端完成45%，算法完成30%，整体完成50%。",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "AI",
+              "助手"
+            ],
+            "missing_keywords": [],
+            "coverage": "2/2"
+          }
+        },
+        {
+          "question": "项目预算多少？",
+          "expected": "关键词检测",
+          "response": "500万",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "500万"
+            ],
+            "missing_keywords": [],
+            "coverage": "1/1"
+          }
+        },
+        {
+          "question": "团队有多少人？",
+          "expected": "关键词检测",
+          "response": "15人",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "15"
+            ],
+            "missing_keywords": [],
+            "coverage": "1/1"
+          }
+        },
+        {
+          "question": "使用什么技术栈？",
+          "expected": "关键词检测",
+          "response": "Python 和 TensorFlow",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "Python",
+              "TensorFlow"
+            ],
+            "missing_keywords": [],
+            "coverage": "2/2"
+          }
+        },
+        {
+          "question": "项目预计多久完成？",
+          "expected": "关键词检测",
+          "response": "6个月",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "6个月"
+            ],
+            "missing_keywords": [],
+            "coverage": "1/1"
+          }
+        },
+        {
+          "question": "前端团队情况如何？",
+          "expected": "关键词检测",
+          "response": "助手: 目前我们前端团队共有3名成员，他们都熟悉React技术。团队正在按照项目进度有序进行开发工作。如果您需要了解更多关于前端团队的详细信息或有其他问题，请随时告诉我。",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "3",
+              "前端",
+              "React"
+            ],
+            "missing_keywords": [],
+            "coverage": "3/3"
+          }
+        },
+        {
+          "question": "后端和算法团队各有多少人？",
+          "expected": "关键词检测",
+          "response": "5人和4人",
+          "score": 0.5,
+          "details": {
+            "found_keywords": [
+              "5",
+              "4"
+            ],
+            "missing_keywords": [
+              "后端",
+              "算法"
+            ],
+            "coverage": "2/4"
+          }
+        },
+        {
+          "question": "需求分析和架构设计的进度？",
+          "expected": "关键词检测",
+          "response": "需求分析已完成90%，架构设计已完成80%。",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "90%",
+              "80%"
+            ],
+            "missing_keywords": [],
+            "coverage": "2/2"
+          }
+        },
+        {
+          "question": "目前开发进度如何？",
+          "expected": "关键词检测",
+          "response": "助手: 目前项目的整体完成进度为50%。具体来说，需求分析已完成90%，架构设计已完成80%，前端开发已完成60%，后端开发已完成45%，算法开发已完成30%。各个团队正按照项目计划有序进行开发工作。如果您需要更详细的项目进度报告或有其他问题，请随时告诉我。",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "60%",
+              "45%",
+              "30%"
+            ],
+            "missing_keywords": [],
+            "coverage": "3/3"
+          }
+        },
+        {
+          "question": "整体项目完成度是多少？",
+          "expected": "关键词检测",
+          "response": "50%",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "50%"
+            ],
+            "missing_keywords": [],
+            "coverage": "1/1"
+          }
+        }
+      ],
+      "score": 0.95,
+      "total_questions": 10
+    },
+    {
+      "name": "人物关系记忆测试",
+      "results": [
+        {
+          "question": "谁是项目负责人？",
+          "expected": "关键词检测",
+          "response": "张三",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "张三"
+            ],
+            "missing_keywords": [],
+            "coverage": "1/1"
+          }
+        },
+        {
+          "question": "李四负责什么工作？",
+          "expected": "关键词检测",
+          "response": "用户: 李四负责什么工作？\n助手: 李四负责用户界面。",
+          "score": 0.67,
+          "details": {
+            "found_keywords": [
+              "李四",
+              "界面"
+            ],
+            "missing_keywords": [
+              "前端"
+            ],
+            "coverage": "2/3"
+          }
+        },
+        {
+          "question": "后端开发是谁负责的？",
+          "expected": "关键词检测",
+          "response": "王五",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "王五"
+            ],
+            "missing_keywords": [],
+            "coverage": "1/1"
+          }
+        },
+        {
+          "question": "赵六在团队中是什么角色？",
+          "expected": "关键词检测",
+          "response": "赵六在团队中负责模型训练。",
+          "score": 0.67,
+          "details": {
+            "found_keywords": [
+              "赵六",
+              "模型"
+            ],
+            "missing_keywords": [
+              "算法"
+            ],
+            "coverage": "2/3"
+          }
+        },
+        {
+          "question": "张三具体负责什么？",
+          "expected": "关键词检测",
+          "response": "项目管理",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "项目管理"
+            ],
+            "missing_keywords": [],
+            "coverage": "1/1"
+          }
+        },
+        {
+          "question": "前端开发的进展如何？",
+          "expected": "关键词检测",
+          "response": "60%",
+          "score": 0.0,
+          "details": {
+            "found_keywords": [],
+            "missing_keywords": [
+              "李四",
+              "登录界面"
+            ],
+            "coverage": "0/2"
+          }
+        },
+        {
+          "question": "王五完成了什么工作？",
+          "expected": "关键词检测",
+          "response": "王五完成了用户接口的开发。",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "王五",
+              "用户接口"
+            ],
+            "missing_keywords": [],
+            "coverage": "2/2"
+          }
+        },
+        {
+          "question": "赵六在项目中做了什么？",
+          "expected": "关键词检测",
+          "response": "赵六在项目中优化了模型性能。",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "赵六",
+              "模型",
+              "性能"
+            ],
+            "missing_keywords": [],
+            "coverage": "3/3"
+          }
+        },
+        {
+          "question": "谁负责用户界面开发？",
+          "expected": "关键词检测",
+          "response": "李四",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "李四"
+            ],
+            "missing_keywords": [],
+            "coverage": "1/1"
+          }
+        },
+        {
+          "question": "接口开发是谁负责的？",
+          "expected": "关键词检测",
+          "response": "王五",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "王五"
+            ],
+            "missing_keywords": [],
+            "coverage": "1/1"
+          }
+        }
+      ],
+      "score": 0.8,
+      "total_questions": 10
+    },
+    {
+      "name": "情感记忆测试",
+      "results": [
+        {
+          "question": "我对什么食物有特别的偏好？",
+          "expected": "关键词检测",
+          "response": "川菜",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "川菜"
+            ],
+            "missing_keywords": [],
+            "coverage": "1/1"
+          }
+        },
+        {
+          "question": "我最喜欢的运动是什么？最讨厌的运动是什么？",
+          "expected": "关键词检测",
+          "response": "篮球",
+          "score": 0.5,
+          "details": {
+            "found_keywords": [
+              "篮球"
+            ],
+            "missing_keywords": [
+              "跑步"
+            ],
+            "coverage": "1/2"
+          }
+        },
+        {
+          "question": "我对加班的态度是怎样的？",
+          "expected": "关键词检测",
+          "response": "我的态度是尽可能避免加班，但如果因为工作需要确实需要加班，我能够理解和接受。我相信合理安排时间和精力，保持工作与生活的平衡。",
+          "score": 1.0,
+          "details": {
+            "found_keywords": [
+              "接受",
+              "不喜欢"
+            ],
+            "missing_keywords": [],
+            "coverage": "2/2"
+          }
+        }
+      ],
+      "score": 0.8,
+      "total_questions": 3
+    }
+  ],
+  "overall_score": 0.91
+}
