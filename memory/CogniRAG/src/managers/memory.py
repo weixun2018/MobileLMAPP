@@ -3,11 +3,12 @@
 import os
 import json
 import uuid
+import logging
 import time
-import chromadb
 from datetime import datetime
+import chromadb
 from chromadb.errors import NotFoundError
-from src.config.config import Config
+from ..config.config import Config
 
 
 class MemoryManager:

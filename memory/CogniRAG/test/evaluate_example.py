@@ -3,6 +3,7 @@
 import os
 import sys
 import json
+import shutil
 from rich.table import Table
 from rich.console import Console
 from typing import List, Dict
@@ -13,11 +14,23 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.app import ResponseProcessor
 
+file_name = "example_14"
+def clear_user_profile():
+    """清空用户配置文件"""
+    profile_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "user", "user_profile.json")
+    if os.path.exists(profile_file):
+        os.remove(profile_file)
+    # 确保目录存在
+    os.makedirs(os.path.dirname(profile_file), exist_ok=True)
+    # 创建一个空的用户配置文件
+    with open(profile_file, "w", encoding="utf-8") as f:
+        json.dump({}, f, ensure_ascii=False, indent=2)
+    print("用户配置文件已清空")
 
-file_name = "example_1"
-with open(
-    f"data/extracted_examples/{file_name}.json", "r", encoding="utf-8"
-) as f:
+
+# 修改文件路径为正确的相对路径
+example_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "extracted_examples", f"{file_name}.json")
+with open(example_file, "r", encoding="utf-8") as f:
     conversation_test_cases = json.load(f)
 
 
@@ -44,8 +57,9 @@ class MemoryEvaluator:
         self.conversation_data = conversation_data
         self.console = Console()
         self.memory_system = memory_system or CogniRAG()
-        # 创建结果目录
-        self.results_dir = "evaluation_results"
+        # 创建结果目录 - 修改为在data目录下
+        self.project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.results_dir = os.path.join(self.project_root, "data", "evaluation_results")
         os.makedirs(self.results_dir, exist_ok=True)
         # 初始化结果数据结构
         self.evaluation_results = {
@@ -208,7 +222,7 @@ if __name__ == "__main__":
 
     # 解析命令行参数
     parser = argparse.ArgumentParser(description="运行记忆评估测试")
-    parser.add_argument("--output", type=str, help="指定结果输出目录", default="evaluation_results")
+    parser.add_argument("--output", type=str, help="指定结果输出目录", default=None)
     parser.add_argument(
         "--file",
         type=str,
@@ -221,6 +235,9 @@ if __name__ == "__main__":
     console = Console()
 
     try:
+        # 清空用户配置文件
+        clear_user_profile()
+        
         # 读取指定的测试文件
         if args.file and args.file != "ending/multi_turn_examples/example_1.json":
             with open(args.file, "r", encoding="utf-8") as f:
@@ -234,6 +251,9 @@ if __name__ == "__main__":
         if args.output:
             evaluator.results_dir = args.output
             os.makedirs(args.output, exist_ok=True)
+            console.print(f"结果将保存到目录: {args.output}", style="blue")
+        else:
+            console.print(f"结果将保存到默认目录: {evaluator.results_dir}", style="blue")
 
         # 运行评估
         console.print("开始运行评估...", style="bold blue")

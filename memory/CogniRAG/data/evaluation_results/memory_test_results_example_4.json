@@ -1,0 +1,83 @@
+{
+  "timestamp": "2025-05-29T10:24:38.409390",
+  "score_questions": [
+    {
+      "question": "孙悦今天做了什么?",
+      "key_words": [
+        "锻炼"
+      ],
+      "response": "孙悦今天进行了一次高强度的间歇训练，并在训练后观看了一场名为《星际穿越者》的科幻电影。",
+      "score": 1.0,
+      "details": {
+        "found_keywords": [
+          "训练"
+        ],
+        "missing_keywords": [],
+        "coverage": "1/1"
+      }
+    },
+    {
+      "question": "孙悦昨天去干嘛了?",
+      "key_words": [
+        "电影"
+      ],
+      "response": "孙悦昨天晚上观看了一部新出的科幻电影，并对电影的特效表示高度评价。",
+      "score": 1.0,
+      "details": {
+        "found_keywords": [
+          "电影"
+        ],
+        "missing_keywords": [],
+        "coverage": "1/1"
+      }
+    },
+    {
+      "question": "孙悦最近在学习什么?",
+      "key_words": [
+        "剪辑"
+      ],
+      "response": "孙悦最近在学习街舞、摄影技术和电影剪辑技巧。",
+      "score": 1.0,
+      "details": {
+        "found_keywords": [
+          "剪辑"
+        ],
+        "missing_keywords": [],
+        "coverage": "1/1"
+      }
+    },
+    {
+      "question": "孙悦最近做了什么美食?",
+      "key_words": [
+        "烤鱼"
+      ],
+      "response": "孙悦最近尝试做了酸辣土豆丝，味道出奇的好，连他自己都感到惊讶。",
+      "score": 0.0,
+      "details": {
+        "found_keywords": ["土豆丝"],
+        "missing_keywords": [
+          "烤鱼"
+        ],
+        "coverage": "1/2"
+      }
+    },
+    {
+      "question": "孙悦最喜欢哪些舞蹈?",
+      "key_words": [
+        "爵士",
+        "Hip-Hop"
+      ],
+      "response": "孙悦最喜欢Hip-Hop和爵士两种舞蹈风格。",
+      "score": 1.0,
+      "details": {
+        "found_keywords": [
+          "爵士",
+          "Hip-Hop"
+        ],
+        "missing_keywords": [],
+        "coverage": "2/2"
+      }
+    }
+  ],
+  "overall_score": 0.6
+}

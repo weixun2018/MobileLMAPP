@@ -1,7 +1,8 @@
-"""消息历史管理模块，负责处理对话历史"""
+"""对话历史管理模块，用于记录和处理对话历史"""
 
+import json
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, trim_messages
-from src.config.config import Config
+from ..config.config import Config
 
 
 class MessageHistory:
