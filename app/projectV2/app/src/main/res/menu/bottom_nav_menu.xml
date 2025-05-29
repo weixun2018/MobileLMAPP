@@ -6,9 +6,9 @@
         android:title="AI心理咨询"/>
 
     <item
-        android:id="@+id/navigation_mbti"
+        android:id="@+id/navigation_test"
         android:icon="@drawable/ic_mbti_test"
-        android:title="MBTI测试"/>
+        android:title="测试"/>
 
     <item
         android:id="@+id/navigation_news"

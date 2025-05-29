@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.bluecat.mapper.MbtiMapper">
+
+    <!-- MBTI问题结果映射 -->
+    <resultMap id="MbtiQuestionResultMap" type="MbtiQuestion">
+        <id property="id" column="id"/>
+        <result property="question" column="question"/>
+        <result property="optionA" column="option_a"/>
+        <result property="optionB" column="option_b"/>
+        <result property="dimension" column="dimension"/>
+    </resultMap>
+
+    <!-- MBTI类型结果映射 -->
+    <resultMap id="MbtiTypeResultMap" type="MbtiType">
+        <id property="type" column="type"/>
+        <result property="name" column="name"/>
+        <result property="description" column="description"/>
+        <result property="characteristics" column="characteristics"/>
+        <result property="suitable" column="suitable"/>
+        <result property="notSuitable" column="not_suitable"/>
+    </resultMap>
+
+    <!-- 查询所有MBTI问题 -->
+    <select id="findAllQuestions" resultMap="MbtiQuestionResultMap">
+        SELECT id, question, option_a, option_b, dimension
+        FROM mbti_questions 
+        ORDER BY id
+    </select>
+
+    <!-- 根据ID查询MBTI问题 -->
+    <select id="findQuestionById" resultMap="MbtiQuestionResultMap">
+        SELECT id, question, option_a, option_b, dimension
+        FROM mbti_questions 
+        WHERE id = #{id}
+    </select>
+
+    <!-- 查询所有MBTI类型 -->
+    <select id="findAllTypes" resultMap="MbtiTypeResultMap">
+        SELECT type, name, description, characteristics, suitable, not_suitable
+        FROM mbti_types 
+        ORDER BY type
+    </select>
+
+    <!-- 根据类型代码查询MBTI类型 -->
+    <select id="findTypeByCode" resultMap="MbtiTypeResultMap">
+        SELECT type, name, description, characteristics, suitable, not_suitable
+        FROM mbti_types 
+        WHERE type = #{type}
+    </select>
+
+    <!-- 插入MBTI问题 -->
+    <insert id="insertQuestion" parameterType="MbtiQuestion" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO mbti_questions (
+            question, option_a, option_b, dimension
+        ) VALUES (
+            #{question}, #{optionA}, #{optionB}, #{dimension}
+        )
+    </insert>
+
+    <!-- 插入MBTI类型 -->
+    <insert id="insertType" parameterType="MbtiType">
+        INSERT INTO mbti_types (
+            type, name, description, characteristics, suitable, not_suitable
+        ) VALUES (
+            #{type}, #{name}, #{description}, #{characteristics}, #{suitable}, #{notSuitable}
+        )
+    </insert>
+
+    <!-- 更新MBTI类型 -->
+    <update id="updateType" parameterType="MbtiType">
+        UPDATE mbti_types 
+        SET 
+            name = #{name},
+            description = #{description},
+            characteristics = #{characteristics},
+            suitable = #{suitable},
+            not_suitable = #{notSuitable}
+        WHERE type = #{type}
+    </update>
+
+</mapper> 

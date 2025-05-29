@@ -10,6 +10,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.projectv2.api.ApiClient;
 import com.example.projectv2.model.User;
 
+import java.io.IOException;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -66,7 +68,27 @@ public class RegisterActivity extends AppCompatActivity {
                     Toast.makeText(RegisterActivity.this, "注册成功", Toast.LENGTH_SHORT).show();
                     finish(); // 返回登录界面
                 } else {
-                    Toast.makeText(RegisterActivity.this, "注册失败，请重试", Toast.LENGTH_SHORT).show();
+                    // 解析具体的错误信息
+                    String errorMessage = "注册失败，请重试";
+                    
+                    try {
+                        if (response.errorBody() != null) {
+                            String errorBody = response.errorBody().string();
+                            
+                            // 根据错误信息内容展示不同的提示
+                            if (errorBody.contains("用户名已存在")) {
+                                errorMessage = "注册失败：用户名已存在";
+                            } else if (errorBody.contains("邮箱已被注册")) {
+                                errorMessage = "注册失败：邮箱已被注册";
+                            } else if (errorBody.contains("手机号已被注册")) {
+                                errorMessage = "注册失败：手机号已被注册";
+                            }
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    
+                    Toast.makeText(RegisterActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
                 }
             }
 
