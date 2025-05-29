@@ -3,16 +3,14 @@
 import os
 import sys
 import json
-import shutil
 from rich.table import Table
 from rich.console import Console
 from typing import List, Dict
 from datetime import datetime
 
-# 添加项目根目录到Python路径
+# 添加父目录到sys.path，以便可以导入上级模块
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from src.app import ResponseProcessor
+from app import ResponseProcessor
 
 file_name = "example_14"
 def clear_user_profile():

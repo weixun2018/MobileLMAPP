@@ -58,13 +58,16 @@ class Config:
         3. 保持连贯性和上下文相关性
         """,
         "RESPONSE_GENERATOR_USER": """
-        相关记忆: {memories}
-
-        提取的线索: {clues}
-
-        对话上下文: {context}
-
-        根据上述信息回答用户问题: {user_input}
+        ## 背景信息
+        - 对话上下文：{context}
+        - 用户问题：{user_input}
+        
+        ## 参考资料
+        - 相关记忆：{memories}
+        - 关键线索：{clues}
+        
+        ## 任务
+        请根据以上信息，针对用户问题提供专业、友好、有帮助的回答。
         """,
     }
 
@@ -83,7 +86,7 @@ class Config:
 
     # 记忆配置
     MEMORY_RETRIEVAL_TOP_K = 5  # 记忆检索时返回的最相关记忆数量
-    SIMILARITY_THRESHOLD = 0.75  # 余弦相似度阈值，仅保留相似度高于此值的记忆
+    SIMILARITY_THRESHOLD = 0.7  # 余弦相似度阈值，仅保留相似度高于此值的记忆
 
     # 性能优化配置
     EMBEDDING_BATCH_SIZE = 4  # 嵌入向量批处理大小

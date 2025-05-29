@@ -17,16 +17,7 @@ class ModelInterface:
         self.embedding_tokenizer = AutoTokenizer.from_pretrained(Config.EMBEDDING_MODEL_NAME)
         self.embedding_model = AutoModel.from_pretrained(Config.EMBEDDING_MODEL_NAME)
 
-        # 设置设备 - 增加MPS支持
-        if torch.cuda.is_available():
-            self.device = "cuda"
-            print("使用CUDA设备")
-        elif hasattr(torch, 'backends') and hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
-            self.device = "mps"
-            print("使用MPS设备 (Apple Silicon)")
-        else:
-            self.device = "cpu"
-            print("使用CPU设备")
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
             
         self.model = self.model.to(self.device)
         self.embedding_model = self.embedding_model.to(self.device)

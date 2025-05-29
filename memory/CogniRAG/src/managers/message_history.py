@@ -18,10 +18,28 @@ class MessageHistory:
     def add_user_message(self, message):
         """添加用户消息"""
         self.messages.append(HumanMessage(content=message))
+        self._trim_history()
 
     def add_ai_message(self, message):
         """添加AI消息"""
         self.messages.append(AIMessage(content=message))
+        self._trim_history()
+        
+    def _trim_history(self):
+        """裁剪历史消息，只保留系统消息和最近k轮对话"""
+        # 保留系统消息
+        system_messages = [msg for msg in self.messages if isinstance(msg, SystemMessage)]
+        
+        # 获取用户和AI消息（非系统消息）
+        non_system_messages = [msg for msg in self.messages if not isinstance(msg, SystemMessage)]
+        
+        # 如果非系统消息超过2*k条（k轮完整对话 = k个用户消息 + k个AI消息）
+        if len(non_system_messages) > 2 * self.k:
+            # 只保留最近的2*k条非系统消息
+            non_system_messages = non_system_messages[-2 * self.k:]
+            
+        # 重新组合消息列表
+        self.messages = system_messages + non_system_messages
 
     def get_trimmed_messages(self):
         """获取经过trim处理的消息列表"""
@@ -38,7 +56,9 @@ class MessageHistory:
     def to_string(self):
         """将消息历史转换为字符串形式"""
         context = []
-        for msg in self.messages:
+        # 只获取非系统消息
+        non_system_messages = [msg for msg in self.messages if not isinstance(msg, SystemMessage)]
+        for msg in non_system_messages:
             if isinstance(msg, HumanMessage):
                 context.append(f"用户: {msg.content}")
             elif isinstance(msg, AIMessage):

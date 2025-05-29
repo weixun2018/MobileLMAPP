@@ -11,7 +11,7 @@ from rich.table import Table
 from rich.console import Console
 from typing import List, Dict
 from datetime import datetime
-from src.app import ResponseProcessor
+from memory.CogniRAG.app import ResponseProcessor
 
 
 memory_test_cases = [
