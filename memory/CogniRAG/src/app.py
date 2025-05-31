@@ -2,11 +2,11 @@
 
 import json
 import time
-from .models.model_interface import ModelInterface
-from .managers.message_history import MessageHistory
-from .managers.user_profile import UserProfileManager
-from .managers.memory import MemoryManager
-from .config.config import Config
+from models.model_interface import ModelInterface
+from managers.message_history import MessageHistory
+from managers.user_profile import UserProfileManager
+from managers.memory import MemoryManager
+from config.config import Config
 
 
 class ResponseProcessor:
@@ -112,8 +112,7 @@ class ResponseProcessor:
 
         # 步骤5: 更新对话历史和记忆系统（长期）
         self.conversation_history.add_ai_message(response)
-        self.memory_manager.add_memory(user_input)
-
+        self.memory_manager.add_memory(user_input, response)
         return response
 
 

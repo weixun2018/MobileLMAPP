@@ -53,7 +53,6 @@ class ResponseProcessor:
 
         # 生成回复
         response = self.model_interface.generate_response(prompt)
-        print(f"提取的线索: {response}")
 
         return response
 
@@ -71,7 +70,6 @@ class ResponseProcessor:
             context=context,
             user_input=user_input,
         )
-        print(f"user_content: {user_content}")
         prompt = [
             {"role": "system", "content": Config.ROLE_PROMPT["RESPONSE_GENERATOR_SYSTEM"]},
             {"role": "user", "content": user_content},
@@ -105,7 +103,6 @@ class ResponseProcessor:
 
         # 步骤3: 使用线索检索相关记忆（从记忆集合中）
         relevant_memories = self.memory_manager.retrieve_relevant_memories_by_clues(clues)
-        print(f"relevant_memories: {relevant_memories}")
 
         # 步骤4: 生成回答（整合所有信息）
         response = self.generate_response(user_input, user_data, clues, context, relevant_memories)

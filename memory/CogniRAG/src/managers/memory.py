@@ -2,13 +2,11 @@
 
 import os
 import json
-import uuid
-import logging
 import time
 from datetime import datetime
 import chromadb
 from chromadb.errors import NotFoundError
-from ..config.config import Config
+from config.config import Config
 
 
 class MemoryManager:
@@ -97,13 +95,13 @@ class MemoryManager:
         )
         print(f"已创建新的记忆集合，向量维度: {self.embedding_dimension}")
 
-    def add_memory(self, user_input):
+    def add_memory(self, user_input, ai_response):
         """添加新记忆"""
-        # 生成唯一ID
-        memory_id = str(uuid.uuid4())
+        # 使用时间戳作为唯一ID
+        memory_id = datetime.now().isoformat()
 
         # 构建记忆内容
-        memory_content = {"user_input": user_input, "timestamp": datetime.now().isoformat()}
+        memory_content = {"用户": user_input, "助手": ai_response}
 
         # 序列化记忆为文本
         memory_text = json.dumps(memory_content, ensure_ascii=False)
@@ -115,7 +113,7 @@ class MemoryManager:
         self.memory_collection.add(
             ids=[memory_id],
             embeddings=[embedding],
-            metadatas=[{"timestamp": memory_content["timestamp"]}],
+            metadatas=[{"type": "memory"}],
             documents=[memory_text],
         )
         print(f"添加记忆到集合: {memory_id}")
@@ -161,7 +159,7 @@ class MemoryManager:
                         # 只添加符合相似度阈值的记忆
                         memory_similarity = 1 - memory_obj.get("distance", 1.0)
                         if memory_similarity >= Config.SIMILARITY_THRESHOLD:
-                            memory_id = f"{memory_obj.get('timestamp', '')}_{memory_obj.get('user_input', '')[:20]}"
+                            memory_id = memory_obj.get("timestamp", datetime.now().isoformat())
                             all_memories[memory_id] = memory_obj
                         else:
                             print(
@@ -203,7 +201,7 @@ class MemoryManager:
                                 continue
 
                             memory_obj = json.loads(doc)
-                            memory_id = f"{memory_obj.get('timestamp', '')}_{memory_obj.get('user_input', '')[:20]}"
+                            memory_id = memory_obj.get('timestamp', datetime.now().isoformat())
 
                             # 添加距离和相似度信息
                             memory_obj["distance"] = distance
@@ -262,26 +260,15 @@ class MemoryManager:
                 else:
                     memory_obj = memory
 
-                user_input = memory_obj.get("user_input", "")
-                ai_response = memory_obj.get("ai_response", "")
-                timestamp = memory_obj.get("timestamp", "")
+                user_input = memory_obj.get("用户", "")
+                ai_response = memory_obj.get("助手", "")
                 similarity = memory_obj.get("similarity", "未知")
 
-                # 格式化为可读文本
-                if timestamp:
-                    try:
-                        dt = datetime.fromisoformat(timestamp)
-                        formatted_time = dt.strftime("%Y-%m-%d %H:%M")
-                    except ValueError:
-                        formatted_time = timestamp
-                else:
-                    formatted_time = "未知时间"
-
-                memory_text = f"[{formatted_time}] 用户: {user_input}\n助手: {ai_response}"
+                memory_text = f"用户: {user_input}\n助手: {ai_response}"
                 formatted_memories.append(memory_text)
 
                 print(
-                    f"添加记忆到上下文: 相似度 {similarity}, 时间 {formatted_time}, 用户输入: {user_input[:30]}..."
+                    f"添加记忆到上下文: 相似度 {similarity}, 用户输入: {user_input[:30]}..."
                 )
             except (json.JSONDecodeError, KeyError) as e:
                 print(f"格式化记忆时出错: {e}, 内容: {memory}")
