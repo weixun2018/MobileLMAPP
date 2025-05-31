@@ -1,0 +1,133 @@
+{
+  "timestamp": "2025-05-29T16:32:04.510308",
+  "score_questions": [
+    {
+      "question": "赵雨萌今天做了什么?",
+      "key_words": [
+        "糖醋鱼"
+      ],
+      "response": "赵雨萌今天做了糖醋鱼，并在烹饪后分享了她的体验，还提到了她花费时间整理小花园，种植了薄荷和迷迭香。",
+      "score": 1.0,
+      "details": {
+        "found_keywords": [
+          "糖醋鱼"
+        ],
+        "missing_keywords": [],
+        "coverage": "1/1"
+      }
+    },
+    {
+      "question": "赵雨萌在花园里种了什么?",
+      "key_words": [
+        "薄荷",
+        "迷迭香"
+      ],
+      "response": "薄荷",
+      "score": 0.5,
+      "details": {
+        "found_keywords": [
+          "薄荷"
+        ],
+        "missing_keywords": [
+          "迷迭香"
+        ],
+        "coverage": "1/2"
+      }
+    },
+    {
+      "question": "赵雨萌的手工作品是什么?",
+      "key_words": [
+        "布偶"
+      ],
+      "response": "赵雨萌的手工作品是一个小布偶。",
+      "score": 1.0,
+      "details": {
+        "found_keywords": [
+          "布偶"
+        ],
+        "missing_keywords": [],
+        "coverage": "1/1"
+      }
+    },
+    {
+      "question": "赵雨萌看了什么电视剧?",
+      "key_words": [
+        "岁月静好"
+      ],
+      "response": "《岁月静好》",
+      "score": 1.0,
+      "details": {
+        "found_keywords": [
+          "岁月静好"
+        ],
+        "missing_keywords": [],
+        "coverage": "1/1"
+      }
+    },
+    {
+      "question": "赵雨萌在工作中遇到了什么问题?",
+      "key_words": [
+        "沟通"
+      ],
+      "response": "赵雨萌在工作中遇到了团队协作的问题，特别是在沟通上存在障碍，导致团队成员意见不统一，她不清楚如何更好地协调。",
+      "score": 1.0,
+      "details": {
+        "found_keywords": [
+          "沟通"
+        ],
+        "missing_keywords": [],
+        "coverage": "1/1"
+      }
+    },
+    {
+      "question": "赵雨萌昨晚梦见了什么?",
+      "key_words": [
+        "花园"
+      ],
+      "response": "赵雨萌昨晚梦见了她的花园里开满了花，这让她感觉心情都好了许多。",
+      "score": 1.0,
+      "details": {
+        "found_keywords": [
+          "花园"
+        ],
+        "missing_keywords": [],
+        "coverage": "1/1"
+      }
+    },
+    {
+      "question": "赵雨萌想要繁殖哪些植物?",
+      "key_words": [
+        "玫瑰",
+        "月季"
+      ],
+      "response": "赵雨萌想要繁殖玫瑰和月季这两种植物。",
+      "score": 1.0,
+      "details": {
+        "found_keywords": [
+          "玫瑰",
+          "月季"
+        ],
+        "missing_keywords": [],
+        "coverage": "2/2"
+      }
+    },
+    {
+      "question": "赵雨萌想用哪些花制作干花装饰?",
+      "key_words": [
+        "薰衣草",
+        "满天星"
+      ],
+      "response": "赵雨萌想要用玫瑰和月季这两种花来制作干花装饰。",
+      "score": 0.0,
+      "details": {
+        "found_keywords": [],
+        "missing_keywords": [
+          "薰衣草",
+          "满天星"
+        ],
+        "coverage": "0/2"
+      }
+    }
+  ],
+  "overall_score": 0.73
+}

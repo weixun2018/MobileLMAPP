@@ -12,22 +12,49 @@ from datetime import datetime
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from app import ResponseProcessor
 
-file_name = "example_14"
-def clear_user_profile():
-    """清空用户配置文件"""
-    profile_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "user", "user_profile.json")
+file_name = "example_30"
+
+
+def clear_memory_data():
+    """清空用户配置文件和向量数据库memory"""
+    # 清空用户配置文件
+    profile_dir = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "user"
+    )
+    profile_file = os.path.join(profile_dir, "user_profile.json")
     if os.path.exists(profile_file):
         os.remove(profile_file)
     # 确保目录存在
-    os.makedirs(os.path.dirname(profile_file), exist_ok=True)
+    os.makedirs(profile_dir, exist_ok=True)
     # 创建一个空的用户配置文件
     with open(profile_file, "w", encoding="utf-8") as f:
         json.dump({}, f, ensure_ascii=False, indent=2)
     print("用户配置文件已清空")
 
+    # 清空向量数据库memory
+    memory_db_dir = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "memory"
+    )
+    if os.path.exists(memory_db_dir):
+        try:
+            # 尝试删除整个目录
+            import shutil
+
+            shutil.rmtree(memory_db_dir)
+            # 重新创建目录
+            os.makedirs(memory_db_dir, exist_ok=True)
+            print("向量数据库memory已清空")
+        except Exception as e:
+            print(f"清空向量数据库时出错: {str(e)}")
+
 
 # 修改文件路径为正确的相对路径
-example_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "extracted_examples", f"{file_name}.json")
+example_file = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "data",
+    "extracted_examples",
+    f"{file_name}.json",
+)
 with open(example_file, "r", encoding="utf-8") as f:
     conversation_test_cases = json.load(f)
 
@@ -107,7 +134,8 @@ class MemoryEvaluator:
     def run_evaluation(self) -> Dict:
         """运行评估"""
         score_results = []
-        total_score = 0
+        total_found_keywords = 0
+        total_keywords = 0
         total_questions = 0
 
         # 首先处理所有的user消息，建立对话历史
@@ -130,8 +158,9 @@ class MemoryEvaluator:
                 # 评分
                 score_result = self._calculate_score(response, key_words)
 
-                # 计算得分
-                total_score += score_result["score"]
+                # 累加关键词统计
+                total_found_keywords += len(score_result["details"]["found_keywords"])
+                total_keywords += len(key_words)
                 total_questions += 1
 
                 result = {
@@ -144,8 +173,8 @@ class MemoryEvaluator:
 
                 score_results.append(result)
 
-        # 计算总体平均分
-        overall_score = round(total_score / total_questions, 2) if total_questions > 0 else 0
+        # 计算总体得分 - 使用总找到关键词/总关键词的比例
+        overall_score = round(total_found_keywords / total_keywords, 2) if total_keywords > 0 else 0
 
         # 保存结果
         self.evaluation_results["score_questions"] = score_results
@@ -234,8 +263,8 @@ if __name__ == "__main__":
 
     try:
         # 清空用户配置文件
-        clear_user_profile()
-        
+        clear_memory_data()
+
         # 读取指定的测试文件
         if args.file and args.file != "ending/multi_turn_examples/example_1.json":
             with open(args.file, "r", encoding="utf-8") as f:

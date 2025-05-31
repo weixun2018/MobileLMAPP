@@ -21,7 +21,27 @@ class MemoryManager:
         os.makedirs(Config.MEMORY_DB_DIR, exist_ok=True)
 
         # 初始化ChromaDB客户端
-        self.client = chromadb.PersistentClient(path=Config.MEMORY_DB_DIR)
+        try:
+            self.client = chromadb.PersistentClient(path=Config.MEMORY_DB_DIR)
+            # 测试写入操作
+            self._test_db_write_permission()
+        except Exception as e:
+            print(f"数据库初始化错误: {e}")
+            print("尝试修复数据库权限...")
+
+            # 尝试修复数据库文件权限
+            if self._fix_db_permissions():
+                # 重新尝试初始化客户端
+                try:
+                    self.client = chromadb.PersistentClient(path=Config.MEMORY_DB_DIR)
+                    self._test_db_write_permission()
+                    print("数据库权限修复成功，可以正常使用")
+                except Exception as retry_error:
+                    print(f"修复权限后仍然无法使用数据库: {retry_error}")
+                    self._recreate_db_directory()
+            else:
+                # 如果无法修复权限，则重新创建数据库目录
+                self._recreate_db_directory()
 
         # 获取嵌入向量的维度
         self.embedding_dimension = self.model_interface.get_embedding_dimension()
@@ -32,6 +52,23 @@ class MemoryManager:
 
         # 记忆查询缓存
         self.memory_cache = {}
+
+    def _test_db_write_permission(self):
+        """测试数据库写入权限"""
+        try:
+            # 创建一个临时集合以测试写入权限
+            test_collection_name = f"test_write_{int(time.time())}"
+            test_collection = self.client.create_collection(name=test_collection_name)
+            # 添加一条测试数据
+            test_collection.add(
+                ids=["test_id"], documents=["测试写入权限"], embeddings=[[0.0] * 10]  # 临时嵌入向量
+            )
+            # 删除测试集合
+            self.client.delete_collection(test_collection_name)
+            print("数据库写入权限测试通过")
+        except Exception as e:
+            print(f"数据库写入权限测试失败: {e}")
+            raise
 
     def _get_or_create_collection(self, name):
         """获取或创建ChromaDB集合"""
@@ -250,3 +287,47 @@ class MemoryManager:
                 print(f"格式化记忆时出错: {e}, 内容: {memory}")
 
         return "\n\n".join(formatted_memories)
+
+    def _fix_db_permissions(self):
+        """尝试修复数据库文件权限"""
+        try:
+            db_file = os.path.join(Config.MEMORY_DB_DIR, "chroma.sqlite3")
+            if os.path.exists(db_file):
+                # 修改数据库文件权限为可读写
+                os.chmod(db_file, 0o666)
+                print(f"已修改数据库文件权限: {db_file}")
+
+                # 修改数据库目录权限
+                os.chmod(Config.MEMORY_DB_DIR, 0o755)
+                print(f"已修改数据库目录权限: {Config.MEMORY_DB_DIR}")
+
+                return True
+            else:
+                print(f"数据库文件不存在: {db_file}")
+                return False
+        except Exception as e:
+            print(f"修复数据库权限失败: {e}")
+            return False
+
+    def _recreate_db_directory(self):
+        """重新创建数据库目录"""
+        print("尝试重新创建数据库目录...")
+        # 备份旧数据库
+        backup_dir = f"{Config.MEMORY_DB_DIR}_backup_{int(time.time())}"
+        if os.path.exists(Config.MEMORY_DB_DIR):
+            try:
+                import shutil
+
+                shutil.move(Config.MEMORY_DB_DIR, backup_dir)
+                print(f"已将旧数据库备份到: {backup_dir}")
+            except Exception as move_error:
+                print(f"备份数据库失败: {move_error}")
+
+        # 创建新的数据库目录
+        os.makedirs(Config.MEMORY_DB_DIR, exist_ok=True)
+        # 修改权限确保可写
+        os.chmod(Config.MEMORY_DB_DIR, 0o755)
+        print(f"创建了新的数据库目录: {Config.MEMORY_DB_DIR}")
+
+        # 重新初始化客户端
+        self.client = chromadb.PersistentClient(path=Config.MEMORY_DB_DIR)
