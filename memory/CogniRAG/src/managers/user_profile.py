@@ -3,7 +3,7 @@
 import os
 import json
 import logging
-from src.config.config import Config
+from config.config import Config
 
 # 配置日志
 logging.basicConfig(
