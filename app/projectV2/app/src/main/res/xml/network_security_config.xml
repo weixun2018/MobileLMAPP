@@ -1,13 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
+    <!-- 生产环境建议使用HTTPS，开发环境允许HTTP -->
     <base-config cleartextTrafficPermitted="true">
         <trust-anchors>
             <certificates src="system" />
         </trust-anchors>
     </base-config>
+    
+    <!-- 开发和测试环境域名配置 -->
     <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">192.168.31.86</domain>
+        <!-- 本地开发环境 -->
         <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+        <!-- Android模拟器访问宿主机 -->
         <domain includeSubdomains="true">10.0.2.2</domain>
+        <!-- 局域网开发服务器（根据实际情况修改） -->
+        <domain includeSubdomains="true">192.168.1.0/24</domain>
     </domain-config>
 </network-security-config> 

@@ -28,8 +28,8 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
 
     public MessageAdapter(List<Message> messages) {
         this.messages = messages;
-        this.fullDateFormat = new SimpleDateFormat("yyyy/MM/dd    a h:mm", Locale.CHINESE);
-        this.timeOnlyFormat = new SimpleDateFormat("a h:mm", Locale.CHINESE);
+        this.fullDateFormat = new SimpleDateFormat("yyyy/MM/dd    HH:mm", Locale.CHINESE);
+        this.timeOnlyFormat = new SimpleDateFormat("HH:mm", Locale.CHINESE);
         this.calendar = Calendar.getInstance();
     }
 

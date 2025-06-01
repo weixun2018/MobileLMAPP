@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.bluecat.mapper.SCL90FactorMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="SCL90FactorMap" type="SCL90Factor">
+        <id property="id" column="id"/>
+        <result property="factorName" column="factor_name"/>
+        <result property="description" column="description"/>
+    </resultMap>
+
+    <!-- 基础字段 -->
+    <sql id="Base_Column_List">
+        id, factor_name, description
+    </sql>
+
+    <!-- 获取所有因子 -->
+    <select id="findAllFactors" resultMap="SCL90FactorMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM scl_factors 
+        ORDER BY id
+    </select>
+
+    <!-- 根据因子名称获取因子 -->
+    <select id="findByFactorName" resultMap="SCL90FactorMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM scl_factors 
+        WHERE factor_name = #{factorName}
+    </select>
+
+    <!-- 根据ID获取因子 -->
+    <select id="findById" resultMap="SCL90FactorMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM scl_factors 
+        WHERE id = #{id}
+    </select>
+
+</mapper> 

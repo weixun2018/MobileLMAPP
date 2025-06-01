@@ -11,12 +11,13 @@ cmake_minimum_required(VERSION 3.22.1)
 # build script scope).
 project("llama-android")
 
-#include(FetchContent)
-#FetchContent_Declare(
-#        llama
-#        GIT_REPOSITORY https://github.com/ggml-org/llama.cpp
-#        GIT_TAG        master
-#)
+include(FetchContent)
+
+FetchContent_Declare(
+    llama
+        GIT_REPOSITORY https://github.com/ggml-org/llama.cpp
+    GIT_TAG b6e4ff69b8abd509647b531bd5b4e86950204f66  # 使用特定的提交哈希
+)
 
 # Also provides "common"
 #FetchContent_MakeAvailable(llama)
@@ -32,8 +33,12 @@ project("llama-android")
 #
 
 #load local llama.cpp
-add_subdirectory(D:/study_space/java_project/tmp/llama.cpp build-llama)
-
+# 下载并配置 llama.cpp
+#add_subdirectory(D:/study_space/java_project/tmp/llama.cpp build-llama)
+set(LLAMA_CURL OFF CACHE BOOL "Disable CURL support" FORCE)
+FetchContent_MakeAvailable(llama)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DGGML_USE_ACCELERATE=OFF -DGGML_USE_METAL=OFF -DGGML_USE_CUBLAS=OFF")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGGML_USE_ACCELERATE=OFF -DGGML_USE_METAL=OFF -DGGML_USE_CUBLAS=OFF")
 # In order to load a library into your app from Java/Kotlin, you must call
 # System.loadLibrary() and pass the name of the library defined here;
 # for GameActivity/NativeActivity derived applications, the same library name must be

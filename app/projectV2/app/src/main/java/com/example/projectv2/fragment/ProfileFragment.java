@@ -10,6 +10,8 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -17,6 +19,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,10 +37,16 @@ import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.example.projectv2.LLamaAPI;
 import com.example.projectv2.LoginActivity;
+import com.example.projectv2.ModelDownloadService;
 import com.example.projectv2.R;
 import com.example.projectv2.api.ApiClient;
 import com.example.projectv2.model.User;
@@ -99,11 +108,15 @@ public class ProfileFragment extends Fragment implements LLamaAPI.ModelStateList
     // 下载模型相关变量
     private OkHttpClient client;
     private boolean isDownloading = false;
-    private static final String MODEL_URL = "https://huggingface.co/qwqcoder/MiniCPM3-4B_Q4_K_M/resolve/main/MiniCPM3-4B-F16_Q4_k_m.gguf?download=true"; // 将这里替换为实际的模型URL
-    private static final String MODEL_FILENAME = "MiniCPM3-4B-F16_Q4_k_m.gguf";
+//    private static final String MODEL_URL = "https://huggingface.co/qwqcoder/MiniCPM3-4B_Q4_K_M/resolve/main/MiniCPM3-4B-F16_Q4_k_m.gguf?download=true"; // 将这里替换为实际的模型URL
+    private static final String MODEL_URL = "https://www.modelscope.cn/models/qwqcoder/blue-cat/resolve/master/model.gguf"; // 将这里替换为实际的模型URL
+    private static final String MODEL_FILENAME = "blue-cat.gguf";
 
     private static final int PICK_IMAGE_REQUEST = 1;
     private static final int PERMISSION_REQUEST = 2;
+    
+    // 添加广播接收器
+    private BroadcastReceiver downloadReceiver;
 
     public static ProfileFragment newInstance() {
         return new ProfileFragment();
@@ -132,6 +145,12 @@ public class ProfileFragment extends Fragment implements LLamaAPI.ModelStateList
                 .writeTimeout(30, TimeUnit.SECONDS)
                 .build();
         
+        // 初始化广播接收器
+        initDownloadReceiver();
+        
+        // 检查之前的下载状态
+        checkPreviousDownloadState();
+        
         // 检查模型状态
         updateModelStatus();
     }
@@ -159,7 +178,15 @@ public class ProfileFragment extends Fragment implements LLamaAPI.ModelStateList
     @Override
     public void onDestroy() {
         super.onDestroy();
-        // 不再需要取消注册广播接收器，因为我们现在使用OkHttp
+        // 注销广播接收器
+        if (downloadReceiver != null && getContext() != null) {
+            try {
+                LocalBroadcastManager.getInstance(getContext())
+                        .unregisterReceiver(downloadReceiver);
+            } catch (Exception e) {
+                Log.e(TAG, "注销广播接收器失败", e);
+            }
+        }
     }
 
     private void initViews(View view) {
@@ -244,11 +271,33 @@ public class ProfileFragment extends Fragment implements LLamaAPI.ModelStateList
 
         // 加载头像
         if (currentUser.getAvatarUrl() != null) {
+            String avatarUrl = ApiClient.BASE_URL.substring(0, ApiClient.BASE_URL.length() - 1) + currentUser.getAvatarUrl();
+            Log.d(TAG, "Loading avatar from URL: " + avatarUrl);
+            
             Glide.with(this)
-                    .load(ApiClient.BASE_URL.substring(0, ApiClient.BASE_URL.length() - 1) + currentUser.getAvatarUrl())
+                    .load(avatarUrl)
                     .placeholder(R.drawable.default_avatar)
                     .error(R.drawable.default_avatar)
+                    .listener(new RequestListener<Drawable>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable GlideException e, Object model,
+                                                  Target<Drawable> target, boolean isFirstResource) {
+                            Log.e(TAG, "Avatar load failed for URL: " + avatarUrl + ", error: " + 
+                                  (e != null ? e.getMessage() : "unknown"));
+                            return false;
+                        }
+
+                        @Override
+                        public boolean onResourceReady(Drawable resource, Object model,
+                                                     Target<Drawable> target, DataSource dataSource,
+                                                     boolean isFirstResource) {
+                            Log.d(TAG, "Avatar loaded successfully from: " + avatarUrl);
+                            return false;
+                        }
+                    })
                     .into(avatarImage);
+        } else {
+            avatarImage.setImageResource(R.drawable.default_avatar);
         }
     }
 
@@ -290,38 +339,29 @@ public class ProfileFragment extends Fragment implements LLamaAPI.ModelStateList
 
     private void uploadImage(Uri imageUri) {
         try {
-            final String mimeType = requireContext().getContentResolver().getType(imageUri);
-            final String finalMimeType = mimeType != null ? mimeType : "image/*";
+            // 获取原始图片
+            Bitmap originalBitmap = MediaStore.Images.Media.getBitmap(requireContext().getContentResolver(), imageUri);
+            
+            // 压缩图片
+            Bitmap compressedBitmap = compressImage(originalBitmap);
+            
+            // 确保缓存目录存在
+            File cacheDir = requireContext().getCacheDir();
+            if (!cacheDir.exists()) {
+                cacheDir.mkdirs();
+            }
+            
+            // 将压缩后的图片转换为文件
+            File compressedFile = new File(cacheDir, "compressed_avatar.jpg");
+            FileOutputStream fos = new FileOutputStream(compressedFile);
+            compressedBitmap.compress(Bitmap.CompressFormat.JPEG, 80, fos);
+            fos.flush();
+            fos.close();
+            
+            Log.d(TAG, "压缩后的图片已保存到: " + compressedFile.getAbsolutePath() + ", 文件大小: " + compressedFile.length() + " 字节");
 
-            // 创建请求体
-            RequestBody requestFile = new RequestBody() {
-                @Override
-                public MediaType contentType() {
-                    return MediaType.parse(finalMimeType);
-                }
-
-                @Override
-                public void writeTo(okio.BufferedSink sink) throws IOException {
-                    InputStream inputStream = null;
-                    try {
-                        inputStream = requireContext().getContentResolver().openInputStream(imageUri);
-                        if (inputStream == null) {
-                            throw new IOException("无法打开文件流");
-                        }
-                        byte[] buffer = new byte[4096];
-                        int read;
-                        while ((read = inputStream.read(buffer)) != -1) {
-                            sink.write(buffer, 0, read);
-                        }
-                    } finally {
-                        if (inputStream != null) {
-                            inputStream.close();
-                        }
-                    }
-                }
-            };
-
-            // 创建 MultipartBody.Part
+            // 直接使用文件路径创建RequestBody
+            RequestBody requestFile = RequestBody.create(MediaType.parse("image/jpeg"), compressedFile);
             MultipartBody.Part body = MultipartBody.Part.createFormData("file", "image.jpg", requestFile);
             RequestBody userId = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(this.userId));
 
@@ -332,15 +372,31 @@ public class ProfileFragment extends Fragment implements LLamaAPI.ModelStateList
                     if (isAdded() && getContext() != null) {
                         if (response.isSuccessful() && response.body() != null) {
                             String avatarUrl = response.body().get("url");
+                            Log.d(TAG, "头像上传成功，URL: " + avatarUrl);
+                            
+                            if (currentUser != null) {
+                                currentUser.setAvatarUrl(avatarUrl);
+                            }
+                            
                             // 更新UI显示新头像
+                            String fullUrl = ApiClient.BASE_URL.substring(0, ApiClient.BASE_URL.length() - 1) + avatarUrl;
+                            Log.d(TAG, "加载头像: " + fullUrl);
+                            
                             Glide.with(ProfileFragment.this)
-                                    .load(ApiClient.BASE_URL.substring(0, ApiClient.BASE_URL.length() - 1) + avatarUrl)
+                                    .load(fullUrl)
                                     .placeholder(R.drawable.default_avatar)
                                     .error(R.drawable.default_avatar)
                                     .into(avatarImage);
                             Toast.makeText(getContext(), "头像上传成功", Toast.LENGTH_SHORT).show();
                         } else {
-                            Toast.makeText(getContext(), "头像上传失败", Toast.LENGTH_SHORT).show();
+                            try {
+                                String errorBody = response.errorBody() != null ? response.errorBody().string() : "Unknown error";
+                                Log.e(TAG, "上传失败: HTTP " + response.code() + " - " + errorBody);
+                                Toast.makeText(getContext(), "头像上传失败: " + errorBody, Toast.LENGTH_SHORT).show();
+                            } catch (IOException e) {
+                                Log.e(TAG, "读取错误响应失败", e);
+                                Toast.makeText(getContext(), "头像上传失败", Toast.LENGTH_SHORT).show();
+                            }
                         }
                     }
                 }
@@ -348,16 +404,53 @@ public class ProfileFragment extends Fragment implements LLamaAPI.ModelStateList
                 @Override
                 public void onFailure(Call<Map<String, String>> call, Throwable t) {
                     if (isAdded() && getContext() != null) {
+                        Log.e(TAG, "上传请求失败", t);
                         Toast.makeText(getContext(), "头像上传失败: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 }
             });
 
+            // 清理资源
+            originalBitmap.recycle();
+            compressedBitmap.recycle();
+            // 不要立即删除文件，等上传完成后再删除
+            // compressedFile.delete();
+
         } catch (Exception e) {
+            Log.e(TAG, "处理图片失败", e);
             if (isAdded() && getContext() != null) {
                 Toast.makeText(getContext(), "文件处理失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    private Bitmap compressImage(Bitmap image) {
+        if (image == null) return null;
+
+        // 计算压缩比例
+        int originalWidth = image.getWidth();
+        int originalHeight = image.getHeight();
+        
+        // 目标大小为800像素（可以根据需求调整）
+        float maxDimension = 800.0f;
+        
+        float scale = 1.0f;
+        if (originalWidth > originalHeight) {
+            if (originalWidth > maxDimension) {
+                scale = maxDimension / originalWidth;
+            }
+        } else {
+            if (originalHeight > maxDimension) {
+                scale = maxDimension / originalHeight;
+            }
+        }
+        
+        // 计算新的尺寸
+        int newWidth = Math.round(originalWidth * scale);
+        int newHeight = Math.round(originalHeight * scale);
+        
+        // 创建新的缩放后的位图
+        return Bitmap.createScaledBitmap(image, newWidth, newHeight, true);
     }
 
     private void showEditUsernameDialog() {
@@ -565,7 +658,7 @@ public class ProfileFragment extends Fragment implements LLamaAPI.ModelStateList
         requireActivity().finish();
     }
 
-    // 修改loadModel方法，从URL下载模型
+    // 修改loadModel方法，使用ModelDownloadService的检查方法
     private void loadModel() {
         if (isModelLoading) {
             if (isAdded() && getContext() != null) {
@@ -574,11 +667,15 @@ public class ProfileFragment extends Fragment implements LLamaAPI.ModelStateList
             return;
         }
         
-        // 检查模型是否已经下载
-        File modelFile = new File(getModelFilePath());
-        if (modelFile.exists() && modelFile.length() > 0) {
-            // 模型已存在，直接加载
-            loadModelFromFile(modelFile.getAbsolutePath());
+        // 获取模型文件路径
+        String modelFilePath = getModelFilePath();
+        
+        // 使用服务提供的方法检查模型文件是否有效
+        boolean modelFileValid = ModelDownloadService.isModelFileValid(requireContext(), modelFilePath);
+        
+        if (modelFileValid) {
+            // 模型文件有效，直接加载
+            loadModelFromFile(modelFilePath);
         } else {
             // 检查设备存储空间是否足够
             long requiredSpace = 3072L * 1024 * 1024; // 预估模型文件大小：3GB
@@ -599,7 +696,14 @@ public class ProfileFragment extends Fragment implements LLamaAPI.ModelStateList
                 return;
             }
             
-            // 模型不存在，需要下载
+            // 如果存在旧的模型文件，但不完整，删除它
+            File oldModelFile = new File(modelFilePath);
+            if (oldModelFile.exists()) {
+                oldModelFile.delete();
+                Log.d(TAG, "删除不完整的模型文件: " + modelFilePath);
+            }
+            
+            // 模型不存在或无效，需要下载
             startModelDownload();
         }
     }
@@ -613,135 +717,14 @@ public class ProfileFragment extends Fragment implements LLamaAPI.ModelStateList
         loadModelButton.setEnabled(false);
         unloadModelButton.setEnabled(false);
         
-        final File modelFile = new File(getModelFilePath());
-        // 确保目录存在
-        modelFile.getParentFile().mkdirs();
+        // 获取模型文件路径
+        final String modelFilePath = getModelFilePath();
         
-        // 创建请求
-        Request request = new Request.Builder()
-                .url(MODEL_URL)
-                .build();
+        // 保存当前要下载的模型路径，以便应用重启后能找到
+        ModelDownloadService.clearDownloadStatus(requireContext());
         
-        // 执行异步下载
-        client.newCall(request).enqueue(new okhttp3.Callback() {
-            @Override
-            public void onFailure(@NonNull okhttp3.Call call, @NonNull IOException e) {
-                if (isAdded() && getActivity() != null) {
-                    Log.e(TAG, "模型下载失败", e);
-                    getActivity().runOnUiThread(() -> {
-                        isModelLoading = false;
-                        isDownloading = false;
-                        modelLoadingProgress.setVisibility(View.GONE);
-                        modelStatusText.setText("模型下载失败: " + e.getMessage());
-                        loadModelButton.setEnabled(true);
-                        unloadModelButton.setEnabled(false);
-                        if (getContext() != null) {
-                            Toast.makeText(getContext(), "模型下载失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
-            }
-
-            @Override
-            public void onResponse(@NonNull okhttp3.Call call, @NonNull okhttp3.Response response) throws IOException {
-                if (!response.isSuccessful()) {
-                    if (isAdded() && getActivity() != null) {
-                        getActivity().runOnUiThread(() -> {
-                            isModelLoading = false;
-                            isDownloading = false;
-                            modelLoadingProgress.setVisibility(View.GONE);
-                            modelStatusText.setText("模型下载失败: HTTP " + response.code());
-                            loadModelButton.setEnabled(true);
-                            unloadModelButton.setEnabled(false);
-                            if (getContext() != null) {
-                                Toast.makeText(getContext(), "模型下载失败: HTTP " + response.code(), Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    }
-                    return;
-                }
-                
-                // 获取响应体
-                ResponseBody responseBody = response.body();
-                if (responseBody == null) {
-                    if (isAdded() && getActivity() != null) {
-                        getActivity().runOnUiThread(() -> {
-                            isModelLoading = false;
-                            isDownloading = false;
-                            modelLoadingProgress.setVisibility(View.GONE);
-                            modelStatusText.setText("模型下载失败: 空响应");
-                            loadModelButton.setEnabled(true);
-                            unloadModelButton.setEnabled(false);
-                            if (getContext() != null) {
-                                Toast.makeText(getContext(), "模型下载失败: 空响应", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    }
-                    return;
-                }
-                
-                // 获取文件总大小
-                long totalBytes = responseBody.contentLength();
-                
-                try (InputStream inputStream = responseBody.byteStream();
-                     FileOutputStream outputStream = new FileOutputStream(modelFile)) {
-                    
-                    byte[] buffer = new byte[8192];
-                    long downloadedBytes = 0;
-                    int read;
-                    
-                    while ((read = inputStream.read(buffer)) != -1) {
-                        // 写入文件
-                        outputStream.write(buffer, 0, read);
-                        
-                        // 更新下载进度
-                        downloadedBytes += read;
-                        final int progress = totalBytes > 0 
-                            ? (int) (downloadedBytes * 100 / totalBytes) 
-                            : -1;
-                        
-                        if (isAdded() && getActivity() != null) {
-                            getActivity().runOnUiThread(() -> {
-                                if (progress >= 0) {
-                                    modelLoadingProgress.setProgress(progress);
-                                    modelStatusText.setText("正在下载模型... " + progress + "%");
-                                } else {
-                                    modelStatusText.setText("正在下载模型...");
-                                }
-                            });
-                        }
-                    }
-                    
-                    // 下载完成，开始加载模型
-                    if (isAdded() && getActivity() != null) {
-                        getActivity().runOnUiThread(() -> {
-                            isDownloading = false;
-                            modelStatusText.setText("下载完成，正在加载模型...");
-                            loadModelFromFile(modelFile.getAbsolutePath());
-                        });
-                    }
-                    
-                } catch (IOException e) {
-                    // 删除可能损坏的文件
-                    modelFile.delete();
-                    
-                    if (isAdded() && getActivity() != null) {
-                        Log.e(TAG, "模型下载或保存失败", e);
-                        getActivity().runOnUiThread(() -> {
-                            isModelLoading = false;
-                            isDownloading = false;
-                            modelLoadingProgress.setVisibility(View.GONE);
-                            modelStatusText.setText("模型下载失败: " + e.getMessage());
-                            loadModelButton.setEnabled(true);
-                            unloadModelButton.setEnabled(false);
-                            if (getContext() != null) {
-                                Toast.makeText(getContext(), "模型下载失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    }
-                }
-            }
-        });
+        // 使用下载服务
+        ModelDownloadService.startDownload(requireContext(), MODEL_URL, modelFilePath);
     }
     
     private String getModelFilePath() {
@@ -752,6 +735,25 @@ public class ProfileFragment extends Fragment implements LLamaAPI.ModelStateList
     
     private void loadModelFromFile(String modelPath) {
         if (!isAdded() || getActivity() == null) return;
+        
+        // 检查文件是否存在
+        File modelFile = new File(modelPath);
+        if (!modelFile.exists() || modelFile.length() == 0) {
+            Log.e(TAG, "模型文件不存在或为空: " + modelPath);
+            if (isAdded() && getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    isModelLoading = false;
+                    modelLoadingProgress.setVisibility(View.GONE);
+                    modelStatusText.setText("模型文件不存在或已损坏");
+                    loadModelButton.setEnabled(true);
+                    unloadModelButton.setEnabled(false);
+                    if (getContext() != null) {
+                        Toast.makeText(getContext(), "模型文件不存在或已损坏", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+            return;
+        }
         
         isModelLoading = true;
         
@@ -798,19 +800,35 @@ public class ProfileFragment extends Fragment implements LLamaAPI.ModelStateList
     
     private void updateModelStatus() {
         try {
+            // 检查下载服务是否正在运行
+            boolean isServiceRunning = ModelDownloadService.isDownloadServiceRunning();
+            // 获取持久化的下载状态
+            String downloadStatus = ModelDownloadService.getDownloadStatus(requireContext());
+            
+            // 如果服务正在运行，我们始终认为是下载状态
+            if (isServiceRunning) {
+                isDownloading = true;
+                isModelLoading = true;
+            } else if (ModelDownloadService.STATUS_DOWNLOADING.equals(downloadStatus)) {
+                // 如果服务不在运行，但状态是下载中，说明下载被中断了
+                // 在这种情况下，我们不会自动更新UI状态，因为checkPreviousDownloadState已经处理了
+            }
+            
             // 检查模型是否已加载
             boolean isModelLoaded = llamaApi != null && llamaApi.isModelLoaded();
             String currentModelName = llamaApi != null ? llamaApi.getCurrentModelName() : null;
             
             Log.d(TAG, "updateModelStatus: isModelLoaded = " + isModelLoaded + 
                   ", isModelLoading = " + isModelLoading + 
-                  ", isDownloading = " + isDownloading);
+                  ", isDownloading = " + isDownloading +
+                  ", isServiceRunning = " + isServiceRunning +
+                  ", downloadStatus = " + downloadStatus);
             
-            // 检查模型文件是否存在
-            File modelFile = new File(getModelFilePath());
-            boolean modelFileExists = modelFile.exists() && modelFile.length() > 0;
+            // 检查模型文件是否有效
+            String modelFilePath = getModelFilePath();
+            boolean modelFileValid = ModelDownloadService.isModelFileValid(requireContext(), modelFilePath);
             
-            modelLoadingProgress.setVisibility(View.GONE);
+            modelLoadingProgress.setVisibility(isDownloading || isModelLoading && !isModelLoaded ? View.VISIBLE : View.GONE);
             loadModelButton.setEnabled(!isModelLoaded && !isModelLoading && !isDownloading);
             unloadModelButton.setEnabled(isModelLoaded && !isModelLoading);
             
@@ -821,14 +839,16 @@ public class ProfileFragment extends Fragment implements LLamaAPI.ModelStateList
                     modelStatusText.setText("模型已加载，可以开始聊天");
                 }
             } else if (isModelLoading) {
-                if (isDownloading) {
+                if (isDownloading || isServiceRunning) {
                     modelStatusText.setText("模型下载中...");
+                    modelLoadingProgress.setVisibility(View.VISIBLE);
                 } else {
                     modelStatusText.setText("模型加载中...");
+                    modelLoadingProgress.setVisibility(View.VISIBLE);
                 }
-                modelLoadingProgress.setVisibility(View.VISIBLE);
             } else {
-                if (modelFileExists) {
+                // 既不是加载中也不是已加载
+                if (modelFileValid) {
                     modelStatusText.setText("模型已下载但未加载，点击加载按钮开始加载");
                 } else {
                     modelStatusText.setText("模型未下载，点击加载按钮开始下载");
@@ -847,6 +867,14 @@ public class ProfileFragment extends Fragment implements LLamaAPI.ModelStateList
         // 注册监听器
         if (llamaApi != null) {
             llamaApi.addModelStateListener(this);
+        }
+        
+        // 检查下载服务状态
+        boolean isServiceRunning = ModelDownloadService.isDownloadServiceRunning();
+        if (isServiceRunning) {
+            // 如果服务正在运行，我们应该将状态设置为下载中
+            isDownloading = true;
+            isModelLoading = true;
         }
         
         // 更新状态
@@ -890,6 +918,170 @@ public class ProfileFragment extends Fragment implements LLamaAPI.ModelStateList
                     Toast.makeText(getContext(), "模型已卸载", Toast.LENGTH_SHORT).show();
                 }
             });
+        }
+    }
+
+    private void initDownloadReceiver() {
+        downloadReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                if (action == null) return;
+                
+                switch (action) {
+                    case ModelDownloadService.ACTION_DOWNLOAD_PROGRESS:
+                        // 接收下载进度更新
+                        int progress = intent.getIntExtra(ModelDownloadService.EXTRA_PROGRESS, 0);
+                        long downloadedBytes = intent.getLongExtra(ModelDownloadService.EXTRA_DOWNLOADED_BYTES, 0);
+                        long totalBytes = intent.getLongExtra(ModelDownloadService.EXTRA_TOTAL_BYTES, 0);
+                        
+                        if (isAdded() && getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                isDownloading = true;
+                                isModelLoading = true;
+                                modelLoadingProgress.setVisibility(View.VISIBLE);
+                                modelLoadingProgress.setProgress(progress);
+                                
+                                String progressText;
+                                if (totalBytes > 0) {
+                                    // 显示下载百分比和MB数
+                                    double downloadedMB = downloadedBytes / (1024.0 * 1024.0);
+                                    double totalMB = totalBytes / (1024.0 * 1024.0);
+                                    progressText = String.format("正在下载模型... %.1f%%（%.1fMB/%.1fMB）", 
+                                                               progress * 1.0, downloadedMB, totalMB);
+                                } else {
+                                    // 如果总大小未知，只显示已下载部分
+                                    double downloadedMB = downloadedBytes / (1024.0 * 1024.0);
+                                    progressText = String.format("正在下载模型...（已下载%.1fMB）", downloadedMB);
+                                }
+                                
+                                modelStatusText.setText(progressText);
+                                loadModelButton.setEnabled(false);
+                                unloadModelButton.setEnabled(false);
+                            });
+                        }
+                        break;
+                        
+                    case ModelDownloadService.ACTION_DOWNLOAD_COMPLETE:
+                        // 下载完成
+                        String filePath = intent.getStringExtra(ModelDownloadService.EXTRA_MODEL_FILE_PATH);
+                        if (isAdded() && getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                isDownloading = false;
+                                // 下载完成不要立即修改isModelLoading，因为还要进入加载模型阶段
+                                modelStatusText.setText("下载完成，正在加载模型...");
+                                loadModelFromFile(filePath);
+                            });
+                        }
+                        break;
+                        
+                    case ModelDownloadService.ACTION_DOWNLOAD_ERROR:
+                        // 下载错误
+                        String errorMessage = intent.getStringExtra(ModelDownloadService.EXTRA_ERROR_MESSAGE);
+                        if (isAdded() && getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                isModelLoading = false;
+                                isDownloading = false;
+                                modelLoadingProgress.setVisibility(View.GONE);
+                                modelStatusText.setText("模型下载失败: " + errorMessage);
+                                loadModelButton.setEnabled(true);
+                                unloadModelButton.setEnabled(false);
+                                if (getContext() != null) {
+                                    Toast.makeText(getContext(), "模型下载失败: " + errorMessage, Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                        break;
+                }
+            }
+        };
+        
+        // 注册广播接收器
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ModelDownloadService.ACTION_DOWNLOAD_PROGRESS);
+        filter.addAction(ModelDownloadService.ACTION_DOWNLOAD_COMPLETE);
+        filter.addAction(ModelDownloadService.ACTION_DOWNLOAD_ERROR);
+        LocalBroadcastManager.getInstance(requireContext())
+                .registerReceiver(downloadReceiver, filter);
+    }
+
+    /**
+     * 检查之前的下载状态，如果有未完成的下载则处理
+     */
+    private void checkPreviousDownloadState() {
+        String downloadStatus = ModelDownloadService.getDownloadStatus(requireContext());
+        String modelPath = ModelDownloadService.getSavedModelPath(requireContext());
+        
+        Log.d(TAG, "检查之前的下载状态: " + downloadStatus + ", 路径: " + modelPath);
+        
+        switch (downloadStatus) {
+            case ModelDownloadService.STATUS_COMPLETED:
+                // 如果标记为已完成，验证文件是否真的完整
+                if (!TextUtils.isEmpty(modelPath) && ModelDownloadService.isModelFileValid(requireContext(), modelPath)) {
+                    // 文件有效，什么都不做，updateModelStatus会处理
+                    Log.d(TAG, "发现有效的已完成下载: " + modelPath);
+                } else {
+                    // 文件无效或不完整，清除状态
+                    Log.w(TAG, "发现无效的已完成下载: " + modelPath);
+                    ModelDownloadService.clearDownloadStatus(requireContext());
+                    // 如果有模型文件但不完整，删除它
+                    if (!TextUtils.isEmpty(modelPath)) {
+                        File file = new File(modelPath);
+                        if (file.exists()) {
+                            boolean deleted = file.delete();
+                            Log.d(TAG, "删除不完整的模型文件: " + deleted);
+                        }
+                    }
+                }
+                break;
+                
+            case ModelDownloadService.STATUS_DOWNLOADING:
+                // 如果标记为下载中，但服务不在运行，说明下载被中断
+                if (!ModelDownloadService.isDownloadServiceRunning()) {
+                    Log.w(TAG, "发现被中断的下载");
+                    
+                    // 弹出提示并询问是否继续下载
+                    new AlertDialog.Builder(requireContext())
+                        .setTitle("下载被中断")
+                        .setMessage("您的模型下载似乎被中断，是否继续下载？")
+                        .setPositiveButton("继续下载", (dialog, which) -> {
+                            // 重新开始下载
+                            startModelDownload();
+                        })
+                        .setNegativeButton("取消", (dialog, which) -> {
+                            // 清除状态，删除不完整的文件
+                            ModelDownloadService.clearDownloadStatus(requireContext());
+                            if (!TextUtils.isEmpty(modelPath)) {
+                                File file = new File(modelPath);
+                                if (file.exists()) {
+                                    boolean deleted = file.delete();
+                                    Log.d(TAG, "删除不完整的模型文件: " + deleted);
+                                }
+                            }
+                        })
+                        .setCancelable(false)
+                        .show();
+                }
+                break;
+                
+            case ModelDownloadService.STATUS_FAILED:
+                // 如果标记为失败，清除状态
+                Log.w(TAG, "发现失败的下载");
+                ModelDownloadService.clearDownloadStatus(requireContext());
+                // 删除可能损坏的文件
+                if (!TextUtils.isEmpty(modelPath)) {
+                    File file = new File(modelPath);
+                    if (file.exists()) {
+                        boolean deleted = file.delete();
+                        Log.d(TAG, "删除损坏的模型文件: " + deleted);
+                    }
+                }
+                break;
+                
+            case ModelDownloadService.STATUS_NONE:
+            default:
+                // 没有之前的下载状态，什么都不做
+                break;
         }
     }
 } 

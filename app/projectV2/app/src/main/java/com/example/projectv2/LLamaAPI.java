@@ -43,6 +43,9 @@ public class LLamaAPI {
     private boolean useIncrementalGeneration = true;
     private boolean clearKVCacheNeeded = false;
 
+    // 添加这些变量
+    private float temperature = 0.8f;
+
     public interface ModelStateListener {
         void onModelLoaded();
 
@@ -143,7 +146,7 @@ public class LLamaAPI {
 
     private native void free_batch(long batch);
 
-    private native long new_sampler();
+    private native long new_sampler(float temp);
 
     private native void free_sampler(long sampler);
 
@@ -170,6 +173,8 @@ public class LLamaAPI {
     private native int get_kv_cache_used(long context);
     private native int get_context_size(long context);
 
+    // 添加新的native方法声明
+    private native boolean can_fit_in_kv_cache(long context, int n_tokens_to_add);
 
     // 辅助方法：估算token数量
     private int estimateTokenCount(String text) {
@@ -312,7 +317,7 @@ public class LLamaAPI {
                     throw new IllegalStateException("new_batch() failed");
                 }
 
-                long sampler = new_sampler();
+                long sampler = new_sampler(temperature);
                 if (sampler == 0L) {
                     // 清理已分配的资源
                     free_batch(batch);
@@ -361,21 +366,25 @@ public class LLamaAPI {
                 State.Loaded loadedState = (State.Loaded) threadLocalState.get();
                 ChatMessage userMsg = new ChatMessage("user", userMessage);
                 
-                // 1. 检查KV缓存状态
+                // 估算用户消息token数量
+                int estimated_tokens = estimateTokenCount(userMessage);
+                Log.i(TAG, "用户消息估计token数: " + estimated_tokens);
+                
+                // 检查KV缓存状态
                 int n_ctx = get_context_size(loadedState.context);
                 int n_ctx_used = get_kv_cache_used(loadedState.context);
+                Log.i(TAG, String.format("KV缓存状态: %d/%d (%.1f%%)", 
+                      n_ctx_used, n_ctx, (float)n_ctx_used/n_ctx*100));
                 
-                // 2. 记录当前状态
-                Log.i(TAG, String.format("KV缓存状态: %d/%d", n_ctx_used, n_ctx));
-                
-                // 3. 尝试增量处理
-                if (n_ctx_used > 0) {
+                // 检查是否可以容纳新消息和回复
+                if (n_ctx_used > 0 && canFitInKVCache(estimated_tokens + nlen)) {
+                    // 增量处理
                     int result = incremental_chat_completion(
                         loadedState.context,
                         loadedState.batch,
                         loadedState.model,
                         userMsg,
-                        nlen);  // 使用预设的生成长度
+                        nlen);
                     
                     if (result >= 0) {
                         // 增量处理成功
@@ -383,14 +392,16 @@ public class LLamaAPI {
                         Log.i(TAG, "增量处理成功，位置: " + result);
                         processCompletion(loadedState, result, callback);
                         return;
+                    } else if (result == -2) {
+                        Log.i(TAG, "增量处理失败: KV缓存空间不足");
+                    } else {
+                        Log.i(TAG, "增量处理失败，错误码: " + result);
                     }
-                    
-                    // 增量处理失败，继续尝试完整处理
-                    Log.i(TAG, "增量处理失败，切换到完整处理");
+                } else if (n_ctx_used > 0) {
+                    Log.i(TAG, "KV缓存空间不足，需要完整处理");
                 }
                 
-                // 4. 完整处理流程
-                // 先清理KV缓存
+                // 完整处理流程
                 kv_cache_clear(loadedState.context);
                 Log.i(TAG, "已清理KV缓存，开始完整处理");
                 
@@ -399,8 +410,9 @@ public class LLamaAPI {
                 
                 // 如果历史太长，裁剪一些早期消息
                 if (messageHistory.size() > 8) {
-                    messageHistory.subList(0, 4).clear();
-                    Log.i(TAG, "历史记录已裁剪，保留最新消息");
+                    int toRemove = messageHistory.size() / 2;
+                    messageHistory.subList(0, toRemove).clear();
+                    Log.i(TAG, String.format("历史记录已裁剪，保留最新%d条消息", messageHistory.size()));
                 }
                 
                 // 初始化完整处理
@@ -410,6 +422,10 @@ public class LLamaAPI {
                     loadedState.model,
                     messageHistory,
                     nlen);
+                
+                if (pos < 0) {
+                    throw new RuntimeException("聊天初始化失败，错误码: " + pos);
+                }
                 
                 // 处理生成
                 processCompletion(loadedState, pos, callback);
@@ -426,33 +442,65 @@ public class LLamaAPI {
                                  CompletionCallback callback) {
         StringBuilder response = new StringBuilder();
         IntVar ncur = new IntVar(startPos);
+        int emptyResponseCount = 0;
+        int maxEmptyResponses = 5;
+        int tokenCount = 0;
+        long startTime = System.currentTimeMillis();
         
-        while (true) {
-            String token = completion_loop(
-                state.context,
-                state.batch,
-                state.sampler,
-                nlen,
-                ncur);
-            
-            if (token == null) {
-                break;  // 生成结束
-            }
-            
-            // 过滤特殊标记
-            if (!token.contains("<|") && !token.contains("</s>")) {
+        try {
+            while (emptyResponseCount < maxEmptyResponses) {
+                String token = completion_loop(
+                    state.context,
+                    state.batch,
+                    state.sampler,
+                    nlen,
+                    ncur);
+                
+                if (token == null) {
+                    // 正常结束
+                    Log.i(TAG, "检测到结束标记，生成完成");
+                    break;
+                }
+                
+                // 处理空token(可能是被跳过的特殊标记)
+                if (token.isEmpty()) {
+                    emptyResponseCount++;
+                    continue;
+                }
+                
+                // 重置空响应计数
+                emptyResponseCount = 0;
+                tokenCount++;
+                
+                // 发送token
                 response.append(token);
                 callback.onToken(token);
             }
+            
+            // 处理完成
+            String finalResponse = response.toString().trim();
+            if (!finalResponse.isEmpty()) {
+                messageHistory.add(new ChatMessage("assistant", finalResponse));
+            }
+            
+            // 记录性能数据
+            long endTime = System.currentTimeMillis();
+            float seconds = (endTime - startTime) / 1000f;
+            float tokensPerSecond = tokenCount / Math.max(seconds, 0.1f);
+            
+            // 记录KV缓存使用情况
+            int finalKvUsed = get_kv_cache_used(state.context);
+            Log.i(TAG, String.format("生成完成, 生成了%d个token, 用时%.1f秒, 速率%.1f tokens/秒, KV使用: %d/%d (%.1f%%)", 
+                  tokenCount, seconds, tokensPerSecond,
+                  finalKvUsed, get_context_size(state.context),
+                  (float)finalKvUsed/get_context_size(state.context)*100));
+            
+            callback.onComplete();
         }
-        
-        // 处理完成
-        String finalResponse = cleanSpecialTokens(response.toString());
-        if (!finalResponse.isEmpty()) {
-            messageHistory.add(new ChatMessage("assistant", finalResponse));
+        catch (Exception e) {
+            Log.e(TAG, "生成过程出错: " + e.getMessage(), e);
+            callback.onError(e);
         }
-        
-        callback.onComplete();
     }
 
 
@@ -781,5 +829,21 @@ public class LLamaAPI {
         }
         
         return false;
+    }
+
+    // 设置生成温度的方法
+    public void setTemperature(float temperature) {
+        this.temperature = temperature;
+        Log.i(TAG, String.format("设置生成温度: %.2f", temperature));
+    }
+
+    // 添加辅助方法检查KV缓存
+    public boolean canFitInKVCache(int n_tokens_to_add) {
+        if (!isModelLoaded) {
+            return false;
+        }
+        
+        State.Loaded loadedState = (State.Loaded) threadLocalState.get();
+        return can_fit_in_kv_cache(loadedState.context, n_tokens_to_add);
     }
 }
