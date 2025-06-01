@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.bluecat.mapper.MbtiTypeMapper">
+
+    <!-- MBTI类型结果映射 -->
+    <resultMap id="MbtiTypeResultMap" type="MbtiType">
+        <id property="type" column="type_code"/>
+        <result property="name" column="type_name"/>
+        <result property="description" column="description"/>
+        <result property="characteristics" column="characteristics"/>
+        <result property="suitable" column="strengths"/>
+        <result property="notSuitable" column="weaknesses"/>
+    </resultMap>
+
+    <!-- 查询所有MBTI类型 -->
+    <select id="findAllTypes" resultMap="MbtiTypeResultMap">
+        SELECT type_code, type_name, description, characteristics, strengths, weaknesses
+        FROM mbti_types 
+        ORDER BY type_code
+    </select>
+
+    <!-- 根据类型代码查询MBTI类型 -->
+    <select id="findTypeByCode" resultMap="MbtiTypeResultMap">
+        SELECT type_code, type_name, description, characteristics, strengths, weaknesses
+        FROM mbti_types 
+        WHERE type_code = #{type}
+    </select>
+
+    <!-- 插入MBTI类型 -->
+    <insert id="insertType" parameterType="MbtiType">
+        INSERT INTO mbti_types (
+            type_code, type_name, description, characteristics, strengths, weaknesses
+        ) VALUES (
+            #{type}, #{name}, #{description}, #{characteristics}, #{suitable}, #{notSuitable}
+        )
+    </insert>
+
+    <!-- 更新MBTI类型 -->
+    <update id="updateType" parameterType="MbtiType">
+        UPDATE mbti_types 
+        SET 
+            type_name = #{name},
+            description = #{description},
+            characteristics = #{characteristics},
+            strengths = #{suitable},
+            weaknesses = #{notSuitable}
+        WHERE type_code = #{type}
+    </update>
+
+</mapper> 

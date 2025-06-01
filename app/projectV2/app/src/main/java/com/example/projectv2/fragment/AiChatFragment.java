@@ -25,6 +25,7 @@ import com.example.projectv2.db.ChatDbHelper;
 import com.example.projectv2.model.Message;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class AiChatFragment extends Fragment implements LLamaAPI.ModelStateListener {
     
@@ -64,6 +65,9 @@ public class AiChatFragment extends Fragment implements LLamaAPI.ModelStateListe
         
         // 注册监听器
         llamaApi.addModelStateListener(this);
+        
+        // 设置更优的生成温度
+        llamaApi.setTemperature(0.7f);
         
         // 只有在首次创建时重置聊天会话，而不是每次进入页面
         if (savedInstanceState == null) {
@@ -124,7 +128,7 @@ public class AiChatFragment extends Fragment implements LLamaAPI.ModelStateListe
                 return;
             }
             
-            // 保存并显示用户消息
+            // 保存并显示用户消息到数据库
             Message userMessage = new Message(content, false);
             dbHelper.insertMessage(userMessage);
             messageAdapter.addMessage(userMessage);
@@ -135,8 +139,10 @@ public class AiChatFragment extends Fragment implements LLamaAPI.ModelStateListe
             // 滚动到底部
             messagesRecyclerView.smoothScrollToPosition(messageAdapter.getItemCount() - 1);
 
-            // 显示AI正在输入的状态
+            // 显示AI正在输入的状态，同时插入到数据库
             Message aiMessage = new Message("AI思考中...", true);
+            // 先插入到数据库获取ID
+            dbHelper.insertMessage(aiMessage);
             messageAdapter.addMessage(aiMessage);
             messagesRecyclerView.smoothScrollToPosition(messageAdapter.getItemCount() - 1);
             
@@ -146,40 +152,48 @@ public class AiChatFragment extends Fragment implements LLamaAPI.ModelStateListe
             
             // 使用LLamaAPI生成回复
             StringBuilder responseBuilder = new StringBuilder();
+            long startTime = System.currentTimeMillis();
+            final AtomicInteger tokenCount = new AtomicInteger(0);
 
-
-            // 匿名类实现回调接口 CompletionCallback
-            /*
-            *   onToken 实现流式返回token
-            *   OnComplete 实现任务完成后的通知
-            *   onError 实现异常通知
-            *   todo：匿名类可能性能损耗较大，因为每次对话都会新建对象，使用static创建静态对象也许性能更高
-            * */
             llamaApi.chat(content, new LLamaAPI.CompletionCallback() {
                 @Override
                 public void onToken(String token) {
-                    responseBuilder.append(token);
-                    
-                    // 使用时间间隔控制UI更新频率，减少UI线程负担
-                    long currentTime = System.currentTimeMillis();
-                    if (currentTime - lastUIUpdateTime > UI_UPDATE_INTERVAL) {
-                        mainHandler.post(() -> {
-                            if (isAdded()) {
-                                aiMessage.setContent(responseBuilder.toString());
-                                messageAdapter.notifyItemChanged(messageAdapter.getItemCount() - 1);
-                                messagesRecyclerView.smoothScrollToPosition(messageAdapter.getItemCount() - 1);
-                            }
-                        });
-                        lastUIUpdateTime = currentTime;
+                    if (token != null && !token.isEmpty()) {
+                        responseBuilder.append(token);
+                        tokenCount.incrementAndGet();
+                        
+                        // 使用时间间隔控制UI更新频率
+                        long currentTime = System.currentTimeMillis();
+                        if (currentTime - lastUIUpdateTime > UI_UPDATE_INTERVAL) {
+                            mainHandler.post(() -> {
+                                if (isAdded()) {
+                                    aiMessage.setContent(responseBuilder.toString());
+                                    messageAdapter.notifyItemChanged(messageAdapter.getItemCount() - 1);
+                                    
+                                    // 只在需要时滚动
+                                    LinearLayoutManager layoutManager = 
+                                        (LinearLayoutManager) messagesRecyclerView.getLayoutManager();
+                                    int position = layoutManager.findLastVisibleItemPosition();
+                                    int count = messageAdapter.getItemCount();
+                                    if (position >= count - 3) {
+                                        messagesRecyclerView.smoothScrollToPosition(messageAdapter.getItemCount() - 1);
+                                    }
+                                }
+                            });
+                            lastUIUpdateTime = currentTime;
+                        }
                     }
                 }
 
                 @Override
                 public void onComplete() {
+                    long endTime = System.currentTimeMillis();
+                    float seconds = (endTime - startTime) / 1000f;
+                    float tokensPerSecond = tokenCount.get() / Math.max(seconds, 0.1f);
+                    
                     // 立即清空所有待处理的UI更新
                     mainHandler.removeCallbacksAndMessages(null);
                     
-                    // 确保最终更新显示完整的响应
                     mainHandler.post(() -> {
                         if (isAdded()) {
                             // 更新最终结果并保存到数据库
@@ -188,14 +202,16 @@ public class AiChatFragment extends Fragment implements LLamaAPI.ModelStateListe
                             dbHelper.updateMessage(aiMessage);
                             messageAdapter.notifyItemChanged(messageAdapter.getItemCount() - 1);
                             
+                            // 日志记录性能
+                            Log.d(TAG, String.format("生成完成，内容长度: %d字符, %d个token, 用时: %.1f秒, 速度: %.1f tokens/秒", 
+                                  finalContent.length(), tokenCount.get(), seconds, tokensPerSecond));
+                            
                             // 更新对话状态指示器
                             showChatHistoryStatus();
                             
                             // 重新启用发送按钮
                             isGenerating = false;
                             sendButton.setEnabled(true);
-                            
-                            Log.d(TAG, "生成完成，内容长度: " + finalContent.length());
                         }
                     });
                 }
@@ -205,8 +221,12 @@ public class AiChatFragment extends Fragment implements LLamaAPI.ModelStateListe
                     mainHandler.post(() -> {
                         if (isAdded() && getContext() != null) {
                             Log.e(TAG, "Chat error", e);
-                            Toast.makeText(getContext(), "生成失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                            aiMessage.setContent("生成失败: " + e.getMessage());
+                            String errorMessage = "生成失败: " + e.getMessage();
+                            Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                            
+                            // 更新消息内容和数据库
+                            aiMessage.setContent(errorMessage);
+                            dbHelper.updateMessage(aiMessage);
                             messageAdapter.notifyItemChanged(messageAdapter.getItemCount() - 1);
                             
                             // 重新启用发送按钮
@@ -257,14 +277,6 @@ public class AiChatFragment extends Fragment implements LLamaAPI.ModelStateListe
                     } else {
                         modelMessage = "AI模型已加载完成，可以开始对话";
                     }
-                    
-                    Toast.makeText(getContext(), modelMessage, Toast.LENGTH_SHORT).show();
-                    
-                    // 添加系统消息告知用户
-                    Message systemMessage = new Message("系统：" + modelMessage, true);
-                    messageAdapter.addMessage(systemMessage);
-                    dbHelper.insertMessage(systemMessage);
-                    messagesRecyclerView.smoothScrollToPosition(messageAdapter.getItemCount() - 1);
                 }
             }
         });
@@ -287,8 +299,13 @@ public class AiChatFragment extends Fragment implements LLamaAPI.ModelStateListe
             .setTitle("清除聊天历史")
             .setMessage("是否要清除所有聊天历史？AI将不再记得之前的对话内容。")
             .setPositiveButton("确定", (dialog, which) -> {
-                // 清除历史记录
+                // 清除LLamaAPI内部历史记录
                 llamaApi.resetChatSession(true);
+                
+                // 清除数据库中的所有消息
+                int deletedCount = dbHelper.deleteAllMessages();
+                Log.d(TAG, "已从数据库中删除 " + deletedCount + " 条消息");
+                
                 // 更新UI
                 if (messageAdapter != null) {
                     messageAdapter.clearMessages();

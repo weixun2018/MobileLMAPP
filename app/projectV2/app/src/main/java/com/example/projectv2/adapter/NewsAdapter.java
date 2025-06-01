@@ -40,7 +40,7 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
         // 设置点击事件，打开新闻链接
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse(news.getLink()));
+            intent.setData(Uri.parse(news.getUrl()));
             v.getContext().startActivity(intent);
         });
     }

@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/telegram_background">
+
+    <!-- 顶部标题栏 -->
+    <LinearLayout
+        android:id="@+id/headerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:elevation="4dp"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="心理健康评估"
+            android:textColor="@color/telegram_text_primary"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- 测试内容区域 -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="visible" />
+
+        <!-- 问题布局 -->
+        <LinearLayout
+            android:id="@+id/questionLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/questionProgress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="1/90"
+                android:textColor="@color/telegram_text_secondary"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="24dp"/>
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:fillViewport="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/questionText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="1. 头痛"
+                        android:textSize="18sp"
+                        android:textColor="@color/telegram_text_primary"
+                        android:layout_marginBottom="32dp"/>
+
+                    <RadioGroup
+                        android:id="@+id/optionsGroup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <RadioButton
+                            android:id="@+id/option1"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="1. 没有"
+                            android:padding="16dp"
+                            android:textSize="16sp"/>
+
+                        <RadioButton
+                            android:id="@+id/option2"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="2. 很轻"
+                            android:padding="16dp"
+                            android:textSize="16sp"
+                            android:layout_marginTop="16dp"/>
+
+                        <RadioButton
+                            android:id="@+id/option3"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="3. 中等"
+                            android:padding="16dp"
+                            android:textSize="16sp"
+                            android:layout_marginTop="16dp"/>
+
+                        <RadioButton
+                            android:id="@+id/option4"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="4. 偏重"
+                            android:padding="16dp"
+                            android:textSize="16sp"
+                            android:layout_marginTop="16dp"/>
+
+                        <RadioButton
+                            android:id="@+id/option5"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="5. 严重"
+                            android:padding="16dp"
+                            android:textSize="16sp"
+                            android:layout_marginTop="16dp"/>
+                    </RadioGroup>
+                </LinearLayout>
+            </ScrollView>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    
+                    <Button
+                        android:id="@+id/previousButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="上一题"
+                        android:background="@drawable/telegram_button_background"
+                        android:textColor="@color/white"
+                        android:layout_marginEnd="4dp"/>
+                        
+                    <Button
+                        android:id="@+id/nextButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="下一题"
+                        android:background="@drawable/telegram_button_background"
+                        android:textColor="@color/white"
+                        android:layout_marginStart="4dp"/>
+                </LinearLayout>
+
+                <!-- 清空作答按钮 -->
+                <Button
+                    android:id="@+id/clearAnswersButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="清空所有作答"
+                    android:background="@drawable/telegram_button_background"
+                    android:alpha="0.7"
+                    android:textColor="@color/white"
+                    android:layout_marginTop="8dp"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="请根据您最近一周的实际情况，评估每个症状对您的影响程度"
+                    android:textColor="@color/telegram_text_secondary"
+                    android:textSize="14sp"
+                    android:gravity="center"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="8dp"/>
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- 结果布局 -->
+        <ScrollView
+            android:id="@+id/resultLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="16dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/summaryScoreText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="SCL-90 心理健康评估结果"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/telegram_text_primary"
+                    android:layout_marginBottom="16dp"/>
+
+                <TextView
+                    android:id="@+id/totalScoreText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="总分: 90 | 总均分: 1.00"
+                    android:textSize="18sp"
+                    android:textColor="@color/telegram_text_primary"
+                    android:layout_marginBottom="24dp"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="阳性项目统计"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:textColor="@color/telegram_text_primary"
+                    android:layout_marginBottom="8dp"/>
+
+                <TextView
+                    android:id="@+id/positiveItemsText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="阳性项目数: 0\n阳性症状均分: 0.00"
+                    android:textColor="@color/telegram_text_primary"
+                    android:layout_marginBottom="16dp"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="9个因子维度评估"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:textColor="@color/telegram_text_primary"
+                    android:layout_marginBottom="8dp"/>
+
+                <TextView
+                    android:id="@+id/factorScoresText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="以下是各因子的平均分及评估："
+                    android:textColor="@color/telegram_text_primary"
+                    android:layout_marginBottom="8dp"/>
+
+                <LinearLayout
+                    android:id="@+id/factorScoresLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="结果解释"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:textColor="@color/telegram_text_primary"
+                    android:layout_marginBottom="8dp"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="总分超过160分，或阳性项目数超过43项，或任一因子分超过2分，可考虑筛查阳性，建议寻求专业心理咨询。"
+                    android:textColor="@color/telegram_text_primary"
+                    android:layout_marginBottom="32dp"/>
+
+                <Button
+                    android:id="@+id/retestButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="重新测试"
+                    android:background="@drawable/telegram_button_background"
+                    android:textColor="@color/white"/>
+
+            </LinearLayout>
+        </ScrollView>
+    </FrameLayout>
+</LinearLayout> 

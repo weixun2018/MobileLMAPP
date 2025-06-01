@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.bluecat.mapper.MbtiQuestionMapper">
+
+    <!-- MBTI问题结果映射 -->
+    <resultMap id="MbtiQuestionResultMap" type="MbtiQuestion">
+        <id property="id" column="id"/>
+        <result property="question" column="question_text"/>
+        <result property="optionA" column="option_a"/>
+        <result property="optionB" column="option_b"/>
+        <result property="dimension" column="dimension"/>
+    </resultMap>
+
+    <!-- 查询所有MBTI问题 -->
+    <select id="findAllQuestions" resultMap="MbtiQuestionResultMap">
+        SELECT id, question_text, option_a, option_b, dimension
+        FROM mbti_questions 
+        ORDER BY id
+    </select>
+
+    <!-- 根据ID查询MBTI问题 -->
+    <select id="findQuestionById" resultMap="MbtiQuestionResultMap">
+        SELECT id, question_text, option_a, option_b, dimension
+        FROM mbti_questions 
+        WHERE id = #{id}
+    </select>
+
+    <!-- 插入MBTI问题 -->
+    <insert id="insertQuestion" parameterType="MbtiQuestion" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO mbti_questions (
+            question_text, option_a, option_b, dimension
+        ) VALUES (
+            #{question}, #{optionA}, #{optionB}, #{dimension}
+        )
+    </insert>
+
+</mapper> 

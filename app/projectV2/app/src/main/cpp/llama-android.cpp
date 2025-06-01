@@ -6,6 +6,38 @@
 #include <unistd.h>
 #include "llama.h"
 #include "common.h"
+#include <vector>
+#include <unordered_set>
+#include <sys/sysinfo.h>
+
+// 全局变量跟踪聊天历史的格式化长度
+static int prev_formatted_len = 0;
+
+// 全局消息历史 - 参考示例代码
+static std::vector<std::string> global_str_storage;  // 存储字符串内容
+static std::vector<llama_chat_message> global_messages;  // 存储消息历史
+
+// 添加消息到历史
+static void add_message_to_history(const char* role, const char* content) {
+    // 存储字符串
+    global_str_storage.push_back(role);
+    global_str_storage.push_back(content);
+    
+    // 添加到消息历史
+    size_t role_idx = global_str_storage.size() - 2;
+    size_t content_idx = global_str_storage.size() - 1;
+    global_messages.push_back({
+        global_str_storage[role_idx].c_str(), 
+        global_str_storage[content_idx].c_str()
+    });
+}
+
+// 清除消息历史
+static void clear_message_history() {
+    global_str_storage.clear();
+    global_messages.clear();
+    prev_formatted_len = 0;
+}
 
 // Write C++ code here.
 //
@@ -34,45 +66,6 @@ jclass la_int_var;
 jmethodID la_int_var_value;
 jmethodID la_int_var_inc;
 
-std::string cached_token_chars;
-
-bool is_valid_utf8(const char * string) {
-    if (!string) {
-        return true;
-    }
-
-    const unsigned char * bytes = (const unsigned char *)string;
-    int num;
-
-    while (*bytes != 0x00) {
-        if ((*bytes & 0x80) == 0x00) {
-            // U+0000 to U+007F
-            num = 1;
-        } else if ((*bytes & 0xE0) == 0xC0) {
-            // U+0080 to U+07FF
-            num = 2;
-        } else if ((*bytes & 0xF0) == 0xE0) {
-            // U+0800 to U+FFFF
-            num = 3;
-        } else if ((*bytes & 0xF8) == 0xF0) {
-            // U+10000 to U+10FFFF
-            num = 4;
-        } else {
-            return false;
-        }
-
-        bytes += 1;
-        for (int i = 1; i < num; ++i) {
-            if ((*bytes & 0xC0) != 0x80) {
-                return false;
-            }
-            bytes += 1;
-        }
-    }
-
-    return true;
-}
-
 static void log_callback(ggml_log_level level, const char * fmt, void * data) {
     if (level == GGML_LOG_LEVEL_ERROR)     __android_log_print(ANDROID_LOG_ERROR, TAG, fmt, data);
     else if (level == GGML_LOG_LEVEL_INFO) __android_log_print(ANDROID_LOG_INFO, TAG, fmt, data);
@@ -80,7 +73,30 @@ static void log_callback(ggml_log_level level, const char * fmt, void * data) {
     else __android_log_print(ANDROID_LOG_DEFAULT, TAG, fmt, data);
 }
 
+// 优化的标记化函数，参考simple-chat.cpp
+std::vector<llama_token> tokenize_optimized(llama_context* ctx, const char* text, bool add_bos) {
+    const auto model = llama_get_model(ctx);
+    const auto vocab = llama_model_get_vocab(model);
 
+    // 使用示例代码的方式获取token数量
+    const int n_tokens = -llama_tokenize(vocab, text, strlen(text), NULL, 0, add_bos, true);
+
+    if (n_tokens <= 0) {
+        LOGe("标记化失败: 无法确定token数量");
+        return {};
+    }
+
+    // 分配精确内存
+    std::vector<llama_token> tokens(n_tokens);
+
+    // 实际标记化
+    if (llama_tokenize(vocab, text, strlen(text), tokens.data(), tokens.size(), add_bos, true) < 0) {
+        LOGe("标记化失败: 无法转换文本到tokens");
+        return {};
+    }
+
+    return tokens;
+}
 extern "C"
 JNIEXPORT jlong JNICALL
 Java_com_example_projectv2_LLamaAPI_load_1model(JNIEnv *env, jobject thiz, jstring filename) {
@@ -130,7 +146,7 @@ Java_com_example_projectv2_LLamaAPI_new_1context(JNIEnv *env, jobject thiz, jlon
 
     llama_context_params ctx_params = llama_context_default_params();
 
-    ctx_params.n_ctx           = 2048;
+    ctx_params.n_ctx           = 4096;
     ctx_params.n_threads       = n_threads;
     ctx_params.n_threads_batch = n_threads;
 
@@ -326,14 +342,28 @@ Java_com_example_projectv2_LLamaAPI_free_1batch(JNIEnv *env, jobject thiz, jlong
 
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_com_example_projectv2_LLamaAPI_new_1sampler(JNIEnv *env, jobject thiz) {
+Java_com_example_projectv2_LLamaAPI_new_1sampler(JNIEnv *env, jobject thiz, jfloat temp) {
     auto sparams = llama_sampler_chain_default_params();
-//    sparams.no_perf = true;
     llama_sampler * smpl = llama_sampler_chain_init(sparams);
-//    llama_sampler_chain_add(smpl, llama_sampler_init_greedy());
+    
+    LOGi("创建采样器 - 温度: %.2f", temp);
+    
+    // 使用与simple-chat.cpp相同的配置
     llama_sampler_chain_add(smpl, llama_sampler_init_min_p(0.05f, 1));
-    llama_sampler_chain_add(smpl, llama_sampler_init_temp(0.8f));
+    
+    if (temp <= 0.0f) {
+        // 温度为0时使用贪婪搜索
+        LOGi("启用贪婪采样策略");
+        llama_sampler_chain_add(smpl, llama_sampler_init_greedy());
+    } else {
+        // 使用温度采样
+        LOGi("启用温度采样策略: %.2f", temp);
+        llama_sampler_chain_add(smpl, llama_sampler_init_temp(temp));
+    }
+    
+    // 添加分布采样
     llama_sampler_chain_add(smpl, llama_sampler_init_dist(LLAMA_DEFAULT_SEED));
+    
     return reinterpret_cast<jlong>(smpl);
 }
 
@@ -348,7 +378,7 @@ Java_com_example_projectv2_LLamaAPI_free_1sampler(JNIEnv *env, jobject thiz, jlo
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_projectv2_LLamaAPI_backend_1init(JNIEnv *env, jobject thiz, jboolean numa) {
-    llama_backend_init();
+    ggml_backend_load_all();
 }
 
 extern "C"
@@ -366,55 +396,98 @@ Java_com_example_projectv2_LLamaAPI_completion_1init(JNIEnv *env,
                                                      jstring jtext,
                                                      jboolean format_chat,
                                                      jint n_len) {
-    LOGi("Starting completion initialization");
     const auto context = reinterpret_cast<llama_context *>(context_pointer);
     const auto batch = reinterpret_cast<llama_batch *>(batch_pointer);
-    const auto text = env->GetStringUTFChars(jtext, 0);
+    const auto model = llama_get_model(context);
     
-    LOGi("Input text: %s", text);
-    LOGi("Format chat: %d", format_chat);
-    LOGi("Max length: %d", n_len);
+    auto text = env->GetStringUTFChars(jtext, 0);
+    LOGi("初始化补全，文本长度: %zu", strlen(text));
     
-    cached_token_chars.clear();
-
-    bool parse_special = (format_chat == JNI_TRUE);
-    const auto tokens_list = common_tokenize(context, text, true, parse_special);
-
+    // 使用聊天模板处理
+    // 获取聊天模板
+    const char* tmpl = llama_model_chat_template(model, nullptr);
+    LOGi("使用聊天模板: %s", tmpl ? "是" : "否");
+    
+    // 创建聊天消息
+    std::vector<std::string> str_storage;
+    std::vector<llama_chat_message> messages;
+    
+    // 将输入文本作为user消息
+    str_storage.push_back("user");
+    str_storage.push_back(text);
+    messages.push_back({str_storage[0].c_str(), str_storage[1].c_str()});
+    
+    // 添加空的assistant回复
+    messages.push_back({"assistant", ""});
+    
+    // 应用模板
+    std::vector<char> formatted(4096, 0);
+    int format_len = llama_chat_apply_template(tmpl, messages.data(), messages.size(),
+                                            true, formatted.data(), formatted.size());
+    
+    if (format_len > (int)formatted.size()) {
+        formatted.resize(format_len + 1, 0);
+        format_len = llama_chat_apply_template(tmpl, messages.data(), messages.size(),
+                                            true, formatted.data(), formatted.size());
+    }
+    
+    if (format_len < 0) {
+        LOGe("应用聊天模板失败");
+        env->ReleaseStringUTFChars(jtext, text);
+        return 0;
+    }
+    
+    std::string prompt(formatted.data(), format_len);
+    LOGi("格式化后提示: %s", prompt.c_str());
+    
+    // 使用优化的标记化
+    const auto tokens_list = tokenize_optimized(context, prompt.c_str(), true);
+    
+    // 检查标记化是否成功
+    if (tokens_list.empty()) {
+        LOGe("标记化失败: 无法生成tokens");
+        env->ReleaseStringUTFChars(jtext, text);
+        return 0;
+    }
+    
+    LOGi("token化完成，共 %zu 个token", tokens_list.size());
+    
     auto n_ctx = llama_n_ctx(context);
     auto n_kv_req = tokens_list.size() + n_len;
-
+    
     LOGi("n_len = %d, n_ctx = %d, n_kv_req = %d", n_len, n_ctx, n_kv_req);
-
+    
     if (n_kv_req > n_ctx) {
         LOGe("错误: 上下文窗口不足! n_kv_req(%d) > n_ctx(%d), 提示token数(%zu) + 最大生成长度(%d)", 
              n_kv_req, n_ctx, tokens_list.size(), n_len);
-    } else if (tokens_list.size() > n_len) {
-        LOGw("警告: 提示token数(%zu)已超过最大生成长度(%d)", tokens_list.size(), n_len);
     } else {
         LOGi("提示token数: %zu, 最大生成长度: %d, 总计: %d (上下文窗口: %d)", 
              tokens_list.size(), n_len, n_kv_req, n_ctx);
     }
-
-    for (auto id : tokens_list) {
-        LOGi("token: `%s`-> %d ", common_token_to_piece(context, id).c_str(), id);
+    
+    // 使用llama_batch_get_one，参考simple-chat.cpp的实现
+    *batch = llama_batch_get_one(const_cast<llama_token*>(tokens_list.data()), tokens_list.size());
+    
+    // 检查是否有足够的上下文空间
+    int n_ctx_used = llama_kv_self_used_cells(context);
+    if (n_ctx_used + batch->n_tokens > n_ctx) {
+        LOGe("上下文大小超出限制：%d + %d > %d", n_ctx_used, batch->n_tokens, n_ctx);
+        env->ReleaseStringUTFChars(jtext, text);
+        return 0;
     }
-
-    common_batch_clear(*batch);
-
-    // evaluate the initial prompt
-    for (auto i = 0; i < tokens_list.size(); i++) {
-        common_batch_add(*batch, tokens_list[i], i, { 0 }, false);
-    }
-
-    // llama_decode will output logits only for the last token of the prompt
-    batch->logits[batch->n_tokens - 1] = true;
-
+    
+    // 解码提示 - 不手动设置logits标志
     if (llama_decode(context, *batch) != 0) {
-        LOGe("llama_decode() failed");
+        LOGe("llama_decode() 失败");
+        env->ReleaseStringUTFChars(jtext, text);
+        return 0;
     }
-
+    
+    // 更新格式化长度，使用格式化后的长度
+    prev_formatted_len = format_len;
+    LOGi("完成初始化，设置格式化长度: %d", prev_formatted_len);
+    
     env->ReleaseStringUTFChars(jtext, text);
-
     return batch->n_tokens;
 }
 
@@ -429,7 +502,7 @@ Java_com_example_projectv2_LLamaAPI_completion_1loop(JNIEnv *env, jobject thiz,
     const auto sampler = reinterpret_cast<llama_sampler *>(sampler_pointer);
     const auto model = llama_get_model(context);
     const auto vocab = llama_model_get_vocab(model);
-//    const bool is_first = llama_kv_self_used_cells(context) == 0;
+    
     // 获取IntVar Java对象
     if (!la_int_var) la_int_var = env->GetObjectClass(intvar_ncur);
     if (!la_int_var_value) la_int_var_value = env->GetMethodID(la_int_var, "getValue", "()I");
@@ -437,49 +510,82 @@ Java_com_example_projectv2_LLamaAPI_completion_1loop(JNIEnv *env, jobject thiz,
 
     // 采样下一个token
     const auto new_token_id = llama_sampler_sample(sampler, context, -1);
+    LOGi("采样得到token ID: %d", new_token_id);
 
-    // 检测是否是结束标记
+    // 直接使用llama_vocab_is_eog检测结束标记，与simple-chat.cpp保持一致
     if (llama_vocab_is_eog(vocab, new_token_id)) {
-        LOGi("检测到EOG标记，结束生成");
+        LOGi("检测到EOG标记: %d，结束生成", new_token_id);
+        
+        // 在生成结束时，更新消息历史中助手的回复内容
+        // 如果有累积的助手回复，保存到历史
+        if (global_messages.size() >= 2) {
+            // 获取聊天模板更新格式化长度
+            const auto model = llama_get_model(context);
+            const char* tmpl = llama_model_chat_template(model, nullptr);
+            if (tmpl) {
+                prev_formatted_len = llama_chat_apply_template(tmpl, global_messages.data(), global_messages.size(),
+                                                          false, nullptr, 0);
+                LOGi("生成结束，更新格式化长度: %d", prev_formatted_len);
+            }
+        }
+        
         return nullptr;
     }
 
-    // 将token ID转换为字符串
-    auto new_token_chars = common_token_to_piece(context, new_token_id);
-    cached_token_chars += new_token_chars;
-
-    // 确保是有效的UTF-8序列
-    jstring new_token = nullptr;
-    if (is_valid_utf8(cached_token_chars.c_str())) {
-        new_token = env->NewStringUTF(cached_token_chars.c_str());
-        cached_token_chars.clear();
-    } else {
-        // 如果不是有效的UTF-8，返回空字符串并保留缓存
-        new_token = env->NewStringUTF("");
+    // 采用simple-chat.cpp的方式处理token
+    char buf[256];
+    int n = llama_token_to_piece(vocab, new_token_id, buf, sizeof(buf), 0, true);
+    if (n < 0) {
+        LOGe("转换token失败");
+        return env->NewStringUTF("");
+    }
+    
+    // 确保字符串长度精确控制，使用正确长度构造字符串
+    std::string piece(buf, n);
+    LOGi("生成token: %d -> '%s'", new_token_id, piece.c_str());
+    
+    // 尝试更新全局历史中的助手回复
+    if (global_messages.size() >= 2) {
+        // 最后一条消息应该是助手的空回复，我们需要逐步添加内容
+        size_t last_index = global_messages.size() - 1;
+        
+        // 获取当前内容
+        std::string current_content = global_str_storage[last_index * 2 + 1];
+        
+        // 添加新token
+        current_content += piece;
+        
+        // 更新内容
+        global_str_storage[last_index * 2 + 1] = current_content;
+        
+        // 更新指针
+        global_messages[last_index].content = global_str_storage[last_index * 2 + 1].c_str();
     }
 
     // 增加计数器
     env->CallVoidMethod(intvar_ncur, la_int_var_inc);
-    
-    // 获取当前位置用于日志和准备batch
-    const auto n_cur = env->CallIntMethod(intvar_ncur, la_int_var_value);
 
-    // 准备下一个batch
-    common_batch_clear(*batch);
-    common_batch_add(*batch, new_token_id, n_cur, { 0 }, true);
+    // 使用llama_batch_get_one创建单token的batch
+    *batch = llama_batch_get_one(const_cast<llama_token*>(&new_token_id), 1);
 
-    // 解码
+    // 解码 - 不手动设置logits标志
     if (llama_decode(context, *batch) != 0) {
         LOGe("llama_decode() 失败");
+        return nullptr;
     }
 
-    return new_token;
+    return env->NewStringUTF(piece.c_str());
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_projectv2_LLamaAPI_kv_1cache_1clear(JNIEnv *env, jobject thiz, jlong context) {
     llama_kv_self_clear(reinterpret_cast<llama_context *>(context));
+    // 重置格式化长度
+    prev_formatted_len = 0;
+    // 清除消息历史
+    clear_message_history();
+    LOGi("KV缓存和聊天历史已重置");
 }
 
 extern "C"
@@ -494,6 +600,21 @@ JNIEXPORT jint JNICALL
 Java_com_example_projectv2_LLamaAPI_get_1context_1size(JNIEnv *env, jobject thiz, jlong context_pointer) {
     const auto context = reinterpret_cast<llama_context *>(context_pointer);
     return llama_n_ctx(context);
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_example_projectv2_LLamaAPI_can_1fit_1in_1kv_1cache(JNIEnv *env, jobject thiz,
+                                                           jlong context_pointer,
+                                                           jint n_tokens_to_add) {
+    const auto context = reinterpret_cast<llama_context *>(context_pointer);
+    int n_ctx = llama_n_ctx(context);
+    int n_ctx_used = llama_kv_self_used_cells(context);
+    
+    LOGi("KV缓存状态: %d/%d，需要添加 %d 个token", n_ctx_used, n_ctx, n_tokens_to_add);
+    
+    // 简单检查是否有足够空间
+    return (n_ctx_used + n_tokens_to_add <= n_ctx) ? JNI_TRUE : JNI_FALSE;
 }
 
 extern "C"
@@ -516,8 +637,8 @@ Java_com_example_projectv2_LLamaAPI_incremental_1chat_1completion(JNIEnv *env,
     
     LOGi("KV缓存状态: %d/%d 单元已使用", n_ctx_used, n_ctx);
     
-    if (n_ctx_used == 0) {
-        LOGi("KV缓存为空，需要完整处理");
+    if (n_ctx_used == 0 || global_messages.empty()) {
+        LOGi("KV缓存为空或消息历史为空，需要完整处理");
         return -1;
     }
     
@@ -563,102 +684,60 @@ Java_com_example_projectv2_LLamaAPI_incremental_1chat_1completion(JNIEnv *env,
         return -1;
     }
     
-    // 准备提示
-    std::string prompt;
+    // 保存原始格式化长度
+    int old_formatted_len = prev_formatted_len;
     
-    // 根据角色确定处理方式
-    bool is_user_message = (strcmp(role, "user") == 0);
+    // 添加新消息到历史
+    add_message_to_history(role, content);
     
-    if (is_user_message) {
-        // 使用RAII管理临时消息数组
-        struct MessageCleanup {
-            std::vector<llama_chat_message>& messages;
-            ~MessageCleanup() {
-                for (auto& msg : messages) {
-                    if (msg.role && msg.role != "assistant") {
-                        free((void*)msg.role);
-                    }
-                    if (msg.content) {
-                        free((void*)msg.content);
-                    }
-                }
-            }
-        };
-        
-        // 创建临时消息数组，确保所有字符串都是动态分配的
-        std::vector<llama_chat_message> temp_messages;
-        
-        // 用户消息
-        char* user_role = strdup(role);
-        char* user_content = strdup(content);
-        if (!user_role || !user_content) {
-            LOGe("内存分配失败");
-            if (user_role) free(user_role);
-            if (user_content) free(user_content);
-            env->ReleaseStringUTFChars(jrole, role);
-            env->ReleaseStringUTFChars(jcontent, content);
-            return -1;
-        }
-        temp_messages.push_back({user_role, user_content});
-        
-        // 助手消息
-        char* assistant_role = strdup("assistant");
-        char* assistant_content = strdup("");
-        if (!assistant_role || !assistant_content) {
-            LOGe("内存分配失败");
-            if (assistant_role) free(assistant_role);
-            if (assistant_content) free(assistant_content);
-            env->ReleaseStringUTFChars(jrole, role);
-            env->ReleaseStringUTFChars(jcontent, content);
-            return -1;
-        }
-        temp_messages.push_back({assistant_role, assistant_content});
-        
-        MessageCleanup cleanup{temp_messages};
-        
-        // 准备格式化缓冲区
-        std::vector<char> formatted(4096);
-        
-        // 使用标准API应用模板
-        int format_len = llama_chat_apply_template(tmpl, temp_messages.data(), temp_messages.size(), 
-                                                  true, formatted.data(), formatted.size());
-        
-        if (format_len > (int)formatted.size()) {
-            formatted.resize(format_len + 1);
-            format_len = llama_chat_apply_template(tmpl, temp_messages.data(), temp_messages.size(), 
-                                                 true, formatted.data(), formatted.size());
-        }
-        
-        if (format_len < 0) {
-            LOGe("应用模板失败");
-            env->ReleaseStringUTFChars(jrole, role);
-            env->ReleaseStringUTFChars(jcontent, content);
-            return -1;
-        }
-        
-        // 解析格式化的字符串，找到用户消息和助手回复的分界点
-        std::string formatted_str(formatted.data(), format_len);
-        
-        // 找到最后一个助手标记的位置
-        size_t assistant_pos = formatted_str.rfind("assistant");
-        
-        if (assistant_pos != std::string::npos) {
-            // 提取用户消息+助手前缀
-            prompt = formatted_str.substr(0, assistant_pos + 9); // "assistant"长度
-            LOGi("提取用户消息+助手前缀，长度: %zu", prompt.length());
-        } else {
-            // 如果找不到助手标记，使用整个格式化字符串
-            prompt = formatted_str;
-            LOGi("未找到assistant标记，使用完整文本");
-        }
-    } else {
-        // 非用户消息则直接使用内容
-        prompt = content;
+    // 准备空的助手回复 - 参考示例代码
+    add_message_to_history("assistant", "");
+    
+    // 分配格式化缓冲区并初始化为0
+    std::vector<char> formatted(8192, 0);  // 使用较大的初始大小
+    
+    // 应用模板到完整历史
+    int format_len = llama_chat_apply_template(tmpl, global_messages.data(), global_messages.size(), 
+                                              true, formatted.data(), formatted.size());
+    
+    if (format_len > (int)formatted.size()) {
+        formatted.resize(format_len + 1, 0);  // 增加1字节用于null终止符
+        format_len = llama_chat_apply_template(tmpl, global_messages.data(), global_messages.size(), 
+                                             true, formatted.data(), formatted.size());
     }
     
+    if (format_len < 0) {
+        LOGe("应用模板失败");
+        env->ReleaseStringUTFChars(jrole, role);
+        env->ReleaseStringUTFChars(jcontent, content);
+        return -1;
+    }
+    
+    // 关键部分：使用官方提供的示例代码的方式，只获取新增部分
+    std::string prompt;
+    if (old_formatted_len > 0 && old_formatted_len < format_len) {
+        // 只用新增的部分作为提示
+        prompt = std::string(formatted.data() + old_formatted_len, format_len - old_formatted_len);
+        LOGi("只使用新增部分，长度: %zu", prompt.length());
+    } else {
+        // 出现问题时，使用完整提示
+        prompt = std::string(formatted.data(), format_len);
+        LOGi("使用完整提示，长度: %zu", prompt.length());
+    }
+    
+    // 更新格式化长度 - 参考示例代码
+    // 注意：这里不更新prev_formatted_len，因为我们还未添加助手回复
+    
     // 标记化增量提示
-    cached_token_chars.clear();
-    const auto tokens_list = common_tokenize(context, prompt.c_str(), true, false);
+    const auto tokens_list = tokenize_optimized(context, prompt.c_str(), false);  // 不添加BOS
+    
+    // 检查标记化是否成功
+    if (tokens_list.empty()) {
+        LOGe("标记化失败: 无法生成tokens");
+        env->ReleaseStringUTFChars(jrole, role);
+        env->ReleaseStringUTFChars(jcontent, content);
+        return -1;
+    }
     
     // 检查KV缓存空间是否足够
     size_t n_kv_req = n_ctx_used + tokens_list.size() + n_len;
@@ -671,27 +750,21 @@ Java_com_example_projectv2_LLamaAPI_incremental_1chat_1completion(JNIEnv *env,
         LOGe("KV缓存空间不足! %zu > %d，回退到完整处理", n_kv_req, n_ctx);
         env->ReleaseStringUTFChars(jrole, role);
         env->ReleaseStringUTFChars(jcontent, content);
+        
+        // 清理刚才添加的消息
+        if (global_messages.size() >= 2) {
+            global_messages.pop_back(); // 移除空的assistant消息
+            global_messages.pop_back(); // 移除用户消息
+        }
+        
         return -2; // 特殊错误码表示空间不足
     }
     
-    // 准备batch
-    common_batch_clear(*batch);
+    // 使用llama_batch_get_one，参考simple-chat.cpp的实现
+    *batch = llama_batch_get_one(const_cast<llama_token*>(tokens_list.data()), tokens_list.size());
     
-    // 从现有KV缓存的末尾开始添加
-    const int start_pos = n_ctx_used;
-    
-    // 将新token添加到batch
-    for (size_t i = 0; i < tokens_list.size(); i++) {
-        common_batch_add(*batch, tokens_list[i], start_pos + i, { 0 }, false);
-    }
-    
-    // 只为最后一个token生成logits
-    if (batch->n_tokens > 0) {
-        batch->logits[batch->n_tokens - 1] = true;
-    }
-    
-    // 处理增量batch
-    LOGi("处理增量batch中，%zu 个token从位置 %d 开始", tokens_list.size(), start_pos);
+    // 处理增量batch - 不手动设置logits标志
+    LOGi("处理增量batch中，%zu 个token", tokens_list.size());
     if (llama_decode(context, *batch) != 0) {
         LOGe("llama_decode() 失败");
         env->ReleaseStringUTFChars(jrole, role);
@@ -704,8 +777,19 @@ Java_com_example_projectv2_LLamaAPI_incremental_1chat_1completion(JNIEnv *env,
     env->ReleaseStringUTFChars(jcontent, content);
     
     // 返回新的开始位置供生成使用
-    int new_start = start_pos + tokens_list.size();
-    LOGi("增量处理成功，新起点: %d", new_start);
+    int new_start = n_ctx_used + tokens_list.size();
+    
+    // 打印详细的KV缓存状态和增量处理结果
+    float kv_usage_percent = (float)new_start / n_ctx * 100.0f;
+    LOGi("增量处理成功，新起点: %d，原使用量: %d，新增token: %zu，最终使用量: %d (%.1f%%)",
+         new_start, n_ctx_used, tokens_list.size(), new_start, kv_usage_percent);
+    
+    // 确保KV缓存中有数据
+    if (new_start <= 0) {
+        LOGe("错误：增量处理后KV缓存为空或无效，返回-1触发完整处理");
+        return -1;
+    }
+    
     return new_start;
 }
 
@@ -723,6 +807,10 @@ Java_com_example_projectv2_LLamaAPI_chat_1completion_1init(JNIEnv *env,
     const auto batch = reinterpret_cast<llama_batch *>(batch_pointer);
     const auto model = reinterpret_cast<llama_model *>(model_pointer);
 
+    // 在完整处理开始时重置历史
+    clear_message_history();
+    LOGi("重置聊天历史");
+
     // 获取ChatMessage类和相关方法
     jclass chatMessageClass = env->FindClass("com/example/projectv2/LLamaAPI$ChatMessage");
     jfieldID roleField = env->GetFieldID(chatMessageClass, "role", "Ljava/lang/String;");
@@ -737,8 +825,7 @@ Java_com_example_projectv2_LLamaAPI_chat_1completion_1init(JNIEnv *env,
     jint messagesSize = env->CallIntMethod(messages_list, sizeMethod);
     LOGi("Chat history size: %d", messagesSize);
 
-    // 创建llama_chat_message数组
-    std::vector<llama_chat_message> llm_messages;
+    // 加载所有消息到全局历史
     for (int i = 0; i < messagesSize; i++) {
         jobject message = env->CallObjectMethod(messages_list, getMethod, i);
         jstring jrole = (jstring)env->GetObjectField(message, roleField);
@@ -747,8 +834,10 @@ Java_com_example_projectv2_LLamaAPI_chat_1completion_1init(JNIEnv *env,
         const char* role = env->GetStringUTFChars(jrole, nullptr);
         const char* content = env->GetStringUTFChars(jcontent, nullptr);
 
-        llm_messages.push_back({strdup(role), strdup(content)});
-
+        // 添加到全局历史
+        add_message_to_history(role, content);
+        
+        // 释放资源
         env->ReleaseStringUTFChars(jrole, role);
         env->ReleaseStringUTFChars(jcontent, content);
         env->DeleteLocalRef(message);
@@ -760,30 +849,34 @@ Java_com_example_projectv2_LLamaAPI_chat_1completion_1init(JNIEnv *env,
     const char* tmpl = llama_model_chat_template(model, nullptr);
     LOGi("Using chat template: %s", tmpl ? "yes" : "no template available");
 
-    // 分配格式化缓冲区
-    std::vector<char> formatted(llama_n_ctx(context));
+    // 分配格式化缓冲区并初始化为0
+    std::vector<char> formatted(4096, 0);  // 使用较小的初始大小并初始化为0
 
-    // 应用聊天模板
-    int new_len = llama_chat_apply_template(tmpl, llm_messages.data(), llm_messages.size(),
+    // 应用聊天模板到全局历史
+    int format_len = llama_chat_apply_template(tmpl, global_messages.data(), global_messages.size(),
                                             true, formatted.data(), formatted.size());
-    if (new_len > (int)formatted.size()) {
-        formatted.resize(new_len);
-        new_len = llama_chat_apply_template(tmpl, llm_messages.data(), llm_messages.size(),
+    if (format_len > (int)formatted.size()) {
+        formatted.resize(format_len + 1, 0);  // 增加1字节用于null终止符，并初始化为0
+        format_len = llama_chat_apply_template(tmpl, global_messages.data(), global_messages.size(),
                                             true, formatted.data(), formatted.size());
     }
 
-    if (new_len < 0) {
+    if (format_len < 0) {
         LOGe("Failed to apply chat template");
         return 0;
     }
 
-    std::string prompt(formatted.data(), new_len);
+    std::string prompt(formatted.data(), format_len);
     LOGi("Formatted prompt: %s", prompt.c_str());
 
-    cached_token_chars.clear();
-
-    // 标记化格式化的提示
-    const auto tokens_list = common_tokenize(context, prompt.c_str(), true, false);
+    // 使用优化的标记化函数
+    const auto tokens_list = tokenize_optimized(context, prompt.c_str(), true);
+    
+    // 检查标记化是否成功
+    if (tokens_list.empty()) {
+        LOGe("标记化失败: 无法生成tokens");
+        return 0;
+    }
 
     auto n_ctx = llama_n_ctx(context);
     auto n_kv_req = tokens_list.size() + n_len;
@@ -800,25 +893,27 @@ Java_com_example_projectv2_LLamaAPI_chat_1completion_1init(JNIEnv *env,
              tokens_list.size(), n_len, n_kv_req, n_ctx);
     }
 
-    common_batch_clear(*batch);
+    // 使用llama_batch_get_one，参考simple-chat.cpp的实现
+    *batch = llama_batch_get_one(const_cast<llama_token*>(tokens_list.data()), tokens_list.size());
 
-    // 评估初始提示
-    for (auto i = 0; i < tokens_list.size(); i++) {
-        common_batch_add(*batch, tokens_list[i], i, { 0 }, false);
+    // 检查是否有足够的上下文空间
+    int n_ctx_used = llama_kv_self_used_cells(context);
+    if (n_ctx_used + batch->n_tokens > n_ctx) {
+        LOGe("上下文大小超出限制：%d + %d > %d", n_ctx_used, batch->n_tokens, n_ctx);
+        return 0;
     }
-
-    // 只为提示的最后一个标记输出logits
-    batch->logits[batch->n_tokens - 1] = true;
-
+    
+    // 解码 - 不手动设置logits标志
     if (llama_decode(context, *batch) != 0) {
         LOGe("llama_decode() failed");
+        return 0;
     }
 
-    // 释放分配的内存
-    for (auto& msg : llm_messages) {
-        free(const_cast<char*>(msg.role));
-        free(const_cast<char*>(msg.content));
-    }
+    // 更新格式化长度，用于下一次增量处理
+    // 直接使用示例代码方式计算pre_len
+    prev_formatted_len = llama_chat_apply_template(tmpl, global_messages.data(), global_messages.size(),
+                                               false, nullptr, 0);
+    LOGi("完成初始化，设置格式化长度: %d", prev_formatted_len);
 
     return batch->n_tokens;
 }

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.bluecat.mapper.SCL90Mapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="SCL90ResultMap" type="SCL90Result">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="totalScore" column="total_score"/>
+        <result property="totalAverage" column="total_average"/>
+        <result property="positiveItems" column="positive_items"/>
+        <result property="positiveAverage" column="positive_average"/>
+        <result property="factorScores" column="factor_scores"/>
+    </resultMap>
+
+    <!-- 基础字段 -->
+    <sql id="Base_Column_List">
+        id, user_id, total_score, total_average, positive_items, positive_average, factor_scores
+    </sql>
+
+    <!-- 根据用户ID查找结果 -->
+    <select id="findByUserId" resultMap="SCL90ResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM scl90_results 
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 根据用户ID删除结果 -->
+    <delete id="deleteByUserId">
+        DELETE FROM scl90_results WHERE user_id = #{userId}
+    </delete>
+
+    <!-- 查询所有结果 -->
+    <select id="findAll" resultMap="SCL90ResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM scl90_results 
+        ORDER BY id DESC
+    </select>
+
+</mapper> 

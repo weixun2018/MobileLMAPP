@@ -3,7 +3,7 @@ package com.example.projectv2.model;
 public class News {
     private Long id;
     private String title;
-    private String link;
+    private String url;
     private String publishDate;
 
     // Getters and Setters
@@ -23,12 +23,12 @@ public class News {
         this.title = title;
     }
 
-    public String getLink() {
-        return link;
+    public String getUrl() {
+        return url;
     }
 
-    public void setLink(String link) {
-        this.link = link;
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public String getPublishDate() {

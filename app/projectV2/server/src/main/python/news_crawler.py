@@ -10,14 +10,21 @@ import requests
 from bs4 import BeautifulSoup
 import json
 from datetime import datetime
+from flask import Flask, jsonify
 import sys
 import codecs
+import logging
 
 # 设置标准输出和错误输出的编码
 # 确保中文内容正确显示
 # 避免编码相关的错误
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer)
 sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer)
+# 配置日志
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+app = Flask(__name__)
 
 def crawl_psychology_news():
     # 目标网站 URL
@@ -77,7 +84,6 @@ def crawl_psychology_news():
                 news_list.append({
                     'title': title,
                     'url': news_url,
-                    'link': news_url,
                     'publishDate': publish_date
                 })
                 
@@ -95,13 +101,29 @@ def crawl_psychology_news():
         print(f"爬取新闻时出错: {str(e)}", file=sys.stderr)
         return []
 
-# 主程序入口
-# 执行爬虫并输出结果
+@app.route('/api/news', methods=['GET'])
+def get_news():
+    try:
+        news = crawl_psychology_news()
+        return jsonify(news)
+    except Exception as e:
+        logger.error(f"获取新闻时发生错误: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+def execute():
+    """执行爬虫返回结果"""
+    return crawl_psychology_news()
+
 if __name__ == "__main__":
-    news = crawl_psychology_news()
-    if not news:
-        print("未找到新闻", file=sys.stderr)
-    else:
-        print(f"Found {len(news)} news items", file=sys.stderr)
-    # 输出 JSON 格式的新闻数据
-    print(json.dumps(news, ensure_ascii=False, indent=2)) 
+    app.run(host='0.0.0.0', port=5000)
+
+# # 主程序入口
+# # 执行爬虫并输出结果
+# if __name__ == "__main__":
+#     news = crawl_psychology_news()
+#     if not news:
+#         print("未找到新闻", file=sys.stderr)
+#     else:
+#         print(f"Found {len(news)} news items", file=sys.stderr)
+#     # 输出 JSON 格式的新闻数据
+#     print(json.dumps(news, ensure_ascii=False, indent=2)) 

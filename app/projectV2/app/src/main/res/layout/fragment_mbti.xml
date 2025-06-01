@@ -44,49 +44,115 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="1/20"
+                android:layout_marginBottom="24dp"
+                android:gravity="center"
+                android:text="1/70"
                 android:textColor="@color/telegram_text_secondary"
                 android:textSize="16sp"
-                android:layout_marginBottom="24dp"/>
+                android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/questionText"
+            <ScrollView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@color/telegram_text_primary"
-                android:textSize="18sp"
-                android:layout_marginBottom="32dp"/>
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:fillViewport="true">
 
-            <RadioGroup
-                android:id="@+id/optionsGroup"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <RadioButton
-                    android:id="@+id/optionA"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="16dp"
-                    android:textSize="16sp"/>
+                    android:orientation="vertical">
 
-                <RadioButton
-                    android:id="@+id/optionB"
+                    <TextView
+                        android:id="@+id/questionText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="32dp"
+                        android:gravity="center"
+                        android:text="问题文本"
+                        android:textColor="@color/telegram_text_primary"
+                        android:textSize="18sp" />
+
+                    <RadioGroup
+                        android:id="@+id/optionsGroup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="32dp"
+                        android:orientation="vertical">
+
+                        <RadioButton
+                            android:id="@+id/optionA"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="16dp"
+                            android:padding="16dp"
+                            android:text="选项A"
+                            android:textSize="16sp" />
+
+                        <RadioButton
+                            android:id="@+id/optionB"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="16dp"
+                            android:text="选项B"
+                            android:textSize="16sp" />
+                    </RadioGroup>
+                </LinearLayout>
+            </ScrollView>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="16dp">
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="16dp"
+                    android:orientation="horizontal">
+                    
+                    <Button
+                        android:id="@+id/previousButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="上一题"
+                        android:background="@drawable/telegram_button_background"
+                        android:textColor="@color/white"
+                        android:layout_marginEnd="4dp"
+                        android:enabled="false" />
+                        
+                    <Button
+                        android:id="@+id/nextButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="下一题"
+                        android:background="@drawable/telegram_button_background"
+                        android:textColor="@color/white"
+                        android:layout_marginStart="4dp" />
+                </LinearLayout>
+
+                <!-- 清空作答按钮 -->
+                <Button
+                    android:id="@+id/clearAnswersButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="清空所有作答"
+                    android:background="@drawable/telegram_button_background"
+                    android:alpha="0.7"
+                    android:textColor="@color/white"
+                    android:layout_marginTop="8dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:textSize="16sp"/>
-            </RadioGroup>
-
-            <Button
-                android:id="@+id/nextButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="下一题"
-                android:layout_marginTop="32dp"
-                android:background="@drawable/telegram_button_background"
-                android:textColor="@color/white"/>
+                    android:layout_marginBottom="8dp"
+                    android:gravity="center"
+                    android:text="提示：请根据你的第一反应选择，不要想太久"
+                    android:textSize="14sp"
+                    android:textColor="@color/telegram_text_secondary" />
+            </LinearLayout>
         </LinearLayout>
 
         <!-- 结果页面 -->
@@ -94,107 +160,125 @@
             android:id="@+id/resultLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:padding="16dp"
             android:visibility="gone">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    android:id="@+id/mbtiTypeText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/telegram_text_primary"
-                    android:layout_marginBottom="16dp"/>
-
-                <TextView
-                    android:id="@+id/typeNameText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:textSize="18sp"
-                    android:textColor="@color/telegram_text_primary"
-                    android:layout_marginBottom="24dp"/>
+                android:orientation="vertical">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="类型描述"
-                    android:textStyle="bold"
-                    android:textSize="16sp"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center"
+                    android:text="你的MBTI人格类型"
                     android:textColor="@color/telegram_text_primary"
-                    android:layout_marginBottom="8dp"/>
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/mbtiTypeText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:gravity="center"
+                    android:text="MBTI类型"
+                    android:textColor="@color/purple_500"
+                    android:textSize="28sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/typeNameText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    android:gravity="center"
+                    android:text="类型名称"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="类型描述"
+                    android:textColor="@color/telegram_text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/descriptionText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:text="类型描述内容"
                     android:textColor="@color/telegram_text_primary"
-                    android:layout_marginBottom="24dp"/>
+                    android:textSize="15sp" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="性格特点"
-                    android:textStyle="bold"
-                    android:textSize="16sp"
+                    android:layout_marginBottom="8dp"
+                    android:text="典型特征"
                     android:textColor="@color/telegram_text_primary"
-                    android:layout_marginBottom="8dp"/>
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/characteristicsText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:text="典型特征内容"
                     android:textColor="@color/telegram_text_primary"
-                    android:layout_marginBottom="24dp"/>
+                    android:textSize="15sp" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
                     android:text="优势"
-                    android:textStyle="bold"
-                    android:textSize="16sp"
                     android:textColor="@color/telegram_text_primary"
-                    android:layout_marginBottom="8dp"/>
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/strengthsText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:text="优势内容"
                     android:textColor="@color/telegram_text_primary"
-                    android:layout_marginBottom="24dp"/>
+                    android:textSize="15sp" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
                     android:text="劣势"
-                    android:textStyle="bold"
-                    android:textSize="16sp"
                     android:textColor="@color/telegram_text_primary"
-                    android:layout_marginBottom="8dp"/>
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/weaknessesText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    android:text="劣势内容"
                     android:textColor="@color/telegram_text_primary"
-                    android:layout_marginBottom="32dp"/>
+                    android:textSize="15sp" />
 
                 <Button
                     android:id="@+id/retestButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center"
                     android:text="重新测试"
                     android:background="@drawable/telegram_button_background"
-                    android:textColor="@color/white"/>
+                    android:textColor="@color/white" />
             </LinearLayout>
         </ScrollView>
-
     </FrameLayout>
-
 </LinearLayout> 
