@@ -3,7 +3,7 @@
 import torch
 import time
 from transformers import AutoModelForCausalLM, AutoTokenizer, AutoModel
-from src.config.config import Config
+from config.config import Config
 
 class ModelInterface:
     """模型接口类，封装与模型的交互"""
@@ -17,8 +17,8 @@ class ModelInterface:
         self.embedding_tokenizer = AutoTokenizer.from_pretrained(Config.EMBEDDING_MODEL_NAME)
         self.embedding_model = AutoModel.from_pretrained(Config.EMBEDDING_MODEL_NAME)
 
-        # 设置设备
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
+            
         self.model = self.model.to(self.device)
         self.embedding_model = self.embedding_model.to(self.device)
 
@@ -52,7 +52,7 @@ class ModelInterface:
         # 提取assistant响应
         response = self.extract_assistant_response(full_response)
 
-        # 检查是否需要清理显存
+        # 检查是否需要清理内存
         self._check_and_clear_memory()
 
         return response
@@ -90,7 +90,7 @@ class ModelInterface:
             # 删除最早添加的缓存项
             self.embedding_cache.pop(next(iter(self.embedding_cache)))
 
-        # 检查是否需要清理显存
+        # 检查是否需要清理内存
         self._check_and_clear_memory()
 
         return embedding
@@ -164,18 +164,18 @@ class ModelInterface:
         for i, idx in enumerate(uncached_indices):
             final_embeddings[idx] = batch_embeddings[i]
 
-        # 检查是否需要清理显存
+        # 检查是否需要清理内存
         self._check_and_clear_memory()
 
         return final_embeddings
 
     def _check_and_clear_memory(self):
-        """检查是否达到清理显存的频率，并在需要时清理显存"""
+        """检查是否达到清理内存的频率，并在需要时清理内存"""
         if not Config.MEMORY_CLEAR_ENABLED:
             return
 
         if self.request_counter >= Config.MEMORY_CLEAR_FREQUENCY:
-            print("达到显存清理频率，开始清理显存...")
+            print("达到内存清理频率，开始清理内存...")
 
             # 清理PyTorch缓存
             if torch.cuda.is_available():
@@ -189,8 +189,8 @@ class ModelInterface:
                 # 再次移回GPU
                 self.model = self.model.to(self.device)
                 self.embedding_model = self.embedding_model.to(self.device)
-
-                print("显存清理完成")
+                
+                print("MPS内存清理完成")
 
             # 重置计数器
             self.request_counter = 0

@@ -11,7 +11,7 @@ from rich.table import Table
 from rich.console import Console
 from typing import List, Dict
 from datetime import datetime
-from src.app import ResponseProcessor
+from memory.CogniRAG.app import ResponseProcessor
 
 
 memory_test_cases = [
@@ -281,6 +281,39 @@ memory_test_cases = [
 ]
 
 
+def clear_user_profile():
+    """清空用户配置文件和向量数据库memory"""
+    # 清空用户配置文件
+    profile_dir = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "user"
+    )
+    profile_file = os.path.join(profile_dir, "user_profile.json")
+    if os.path.exists(profile_file):
+        os.remove(profile_file)
+    # 确保目录存在
+    os.makedirs(profile_dir, exist_ok=True)
+    # 创建一个空的用户配置文件
+    with open(profile_file, "w", encoding="utf-8") as f:
+        json.dump({}, f, ensure_ascii=False, indent=2)
+    print("用户配置文件已清空")
+
+    # 清空向量数据库memory
+    memory_db_dir = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "memory"
+    )
+    if os.path.exists(memory_db_dir):
+        try:
+            # 尝试删除整个目录
+            import shutil
+
+            shutil.rmtree(memory_db_dir)
+            # 重新创建目录
+            os.makedirs(memory_db_dir, exist_ok=True)
+            print("向量数据库memory已清空")
+        except Exception as e:
+            print(f"清空向量数据库时出错: {str(e)}")
+
+
 # 添加CogniRAG适配器类，将main.py中的功能与evaluate_simple.py对接
 class CogniRAG:
     """适配器类，将ResponseProcessor的功能封装为evaluate_simple.py需要的接口"""
@@ -357,7 +390,8 @@ class MemoryEvaluator:
     def evaluate_case(self, test_case: Dict) -> Dict:
         """评估单个测试用例"""
         results = []
-        case_score = 0.0
+        total_found_keywords = 0
+        total_keywords = 0
         total_questions = 0
 
         self.console.print(f"\n正在测试: {test_case['name']}", style="blue")
@@ -372,8 +406,10 @@ class MemoryEvaluator:
                 # 评分
                 score_result = self._calculate_score(response, step)
 
-                # 计算本用例得分
-                case_score += score_result["score"]
+                # 累加关键词统计
+                keywords = step.get("keywords", [])
+                total_found_keywords += len(score_result["details"]["found_keywords"])
+                total_keywords += len(keywords)
                 total_questions += 1
 
                 results.append(
@@ -391,30 +427,34 @@ class MemoryEvaluator:
                 response = self._call_llm(step["input"])
                 self.console.print(f"回答: {response}", style="dim cyan")
 
-        # 计算本测试用例的平均分
-        avg_case_score = case_score / total_questions if total_questions > 0 else 0
+        # 计算本测试用例的得分 - 使用总找到关键词/总关键词的比例
+        case_score = total_found_keywords / total_keywords if total_keywords > 0 else 0
 
         return {
             "name": test_case["name"],
             "results": results,
-            "score": round(avg_case_score, 2),
+            "score": round(case_score, 2),
             "total_questions": total_questions,
+            "total_keywords": total_keywords,
+            "total_found_keywords": total_found_keywords,
         }
 
     def run_evaluation(self) -> Dict:
         """运行所有测试用例"""
         all_results = []
-        total_score = 0
+        total_found_keywords = 0
+        total_keywords = 0
         total_questions = 0
 
         for test_case in self.test_cases:
             case_result = self.evaluate_case(test_case)
             all_results.append(case_result)
 
-            total_score += case_result["score"] * case_result["total_questions"]
+            total_found_keywords += case_result["total_found_keywords"]
+            total_keywords += case_result["total_keywords"]
             total_questions += case_result["total_questions"]
 
-        overall_score = round(total_score / total_questions, 2) if total_questions > 0 else 0
+        overall_score = round(total_found_keywords / total_keywords, 2) if total_keywords > 0 else 0
 
         # 保存到结果数据结构
         self.evaluation_results["test_cases"] = all_results
@@ -564,6 +604,9 @@ if __name__ == "__main__":
     console = Console()
 
     try:
+        # 清空用户配置文件和向量数据库
+        clear_user_profile()
+
         # 创建评估器实例 - 不传递filtered_test_cases参数，让MemoryEvaluator使用默认的测试用例
         console.print("正在初始化评估器...", style="blue")
         evaluator = MemoryEvaluator(test_cases=memory_test_cases)

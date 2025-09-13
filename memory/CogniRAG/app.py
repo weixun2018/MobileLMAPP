@@ -2,11 +2,11 @@
 
 import json
 import time
-from models.model_interface import ModelInterface
-from managers.message_history import MessageHistory
-from managers.user_profile import UserProfileManager
-from managers.memory import MemoryManager
-from config.config import Config
+from src.models.model_interface import ModelInterface
+from src.managers.message_history import MessageHistory
+from src.managers.user_profile import UserProfileManager
+from src.managers.memory import MemoryManager
+from src.config.config import Config
 
 
 class ResponseProcessor:
@@ -53,7 +53,6 @@ class ResponseProcessor:
 
         # 生成回复
         response = self.model_interface.generate_response(prompt)
-        print(f"提取的线索: {response}")
 
         return response
 
@@ -71,7 +70,6 @@ class ResponseProcessor:
             context=context,
             user_input=user_input,
         )
-        print(f"user_content: {user_content}")
         prompt = [
             {"role": "system", "content": Config.ROLE_PROMPT["RESPONSE_GENERATOR_SYSTEM"]},
             {"role": "user", "content": user_content},
@@ -105,14 +103,14 @@ class ResponseProcessor:
 
         # 步骤3: 使用线索检索相关记忆（从记忆集合中）
         relevant_memories = self.memory_manager.retrieve_relevant_memories_by_clues(clues)
-        print(f"relevant_memories: {relevant_memories}")
 
         # 步骤4: 生成回答（整合所有信息）
         response = self.generate_response(user_input, user_data, clues, context, relevant_memories)
 
         # 步骤5: 更新对话历史和记忆系统（长期）
         self.conversation_history.add_ai_message(response)
-        self.memory_manager.add_memory(user_input, response)
+        self.memory_manager.add_memory(user_input)
+
         return response
 
 
